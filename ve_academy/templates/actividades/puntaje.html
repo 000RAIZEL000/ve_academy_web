@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Mi Puntaje — V&E Academy{% endblock %}
+
+{% block content %}
+<div class="puntaje-hero">
+  <img src="{% static 'img/avatars/'|add:estudiante.avatar|add:'.png' %}"
+       alt="{{ estudiante.avatar }}" class="puntaje-avatar">
+  <h2 class="puntaje-nombre">{{ estudiante.nombre }}</h2>
+  <div class="puntaje-total">⭐ {{ estudiante.puntos }}</div>
+  <div class="puntaje-label">puntos acumulados</div>
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:16px;">
+    <a href="{% url 'libros:lista' %}" class="btn btn-azul">📚 Elegir cuento</a>
+    <a href="{% url 'ranking' %}" class="btn btn-naranja">🏆 Ver ranking</a>
+    <a href="{% url 'home' %}" class="btn btn-gris">🔄 Cambiar perfil</a>
+  </div>
+</div>
+
+{% if sesiones %}
+<h2 style="font-family:'Baloo 2',cursive;font-weight:700;margin-bottom:16px;">📋 Mis últimas actividades</h2>
+<div class="ranking-tabla">
+  <table>
+    <thead>
+      <tr><th>Cuento</th><th>Puntos</th><th>Fecha</th></tr>
+    </thead>
+    <tbody>
+      {% for s in sesiones %}
+      <tr>
+        <td>{{ s.libro.titulo }}</td>
+        <td class="ranking-pts">+{{ s.puntos_obtenidos }} ⭐</td>
+        <td style="color:var(--gris);font-size:.9rem;">{{ s.fecha|date:"d/m/Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

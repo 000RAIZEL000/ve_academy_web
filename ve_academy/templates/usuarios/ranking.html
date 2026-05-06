@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Ranking — V&E Academy{% endblock %}
+
+{% block content %}
+<h1 class="page-titulo">🏆 Tabla de Campeones</h1>
+<p class="page-subtitulo">Los lectores más dedicados de V&amp;E Academy</p>
+
+<div class="ranking-tabla">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Avatar</th>
+        <th>Nombre</th>
+        <th>Edad</th>
+        <th>Puntos</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for est in top %}
+      <tr {% if est.id == estudiante_id %}class="yo"{% endif %}>
+        <td>
+          <span class="ranking-pos {% if forloop.counter == 1 %}oro{% elif forloop.counter == 2 %}plata{% elif forloop.counter == 3 %}bronce{% endif %}">
+            {% if forloop.counter == 1 %}🥇
+            {% elif forloop.counter == 2 %}🥈
+            {% elif forloop.counter == 3 %}🥉
+            {% else %}{{ forloop.counter }}{% endif %}
+          </span>
+        </td>
+        <td>
+          <img src="{% static 'img/avatars/'|add:est.avatar|add:'.png' %}"
+               alt="{{ est.avatar }}" class="ranking-avatar-sm">
+        </td>
+        <td>
+          <strong>{{ est.nombre }}</strong>
+          {% if est.id == estudiante_id %}<span style="color:var(--verde);font-size:.8rem;"> ← ¡Tú!</span>{% endif %}
+        </td>
+        <td>{{ est.edad }} años</td>
+        <td><span class="ranking-pts">⭐ {{ est.puntos }}</span></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--gris);">Todavía no hay puntajes. ¡Sé el primero!</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+  <a href="{% url 'libros:lista' %}" class="btn btn-verde">📚 Volver a los cuentos</a>
+  <a href="{% url 'home' %}" class="btn btn-gris">🔄 Cambiar perfil</a>
+</div>
+{% endblock %}

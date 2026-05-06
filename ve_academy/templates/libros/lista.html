@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Cuentos — V&E Academy{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:32px;">
+  <div>
+    <h1 class="page-titulo">📚 Elige un cuento</h1>
+    <p class="page-subtitulo">Hola <strong>{{ estudiante.nombre }}</strong>, ¿qué historia quieres leer hoy?</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="{% static 'img/avatars/'|add:estudiante.avatar|add:'.png' %}"
+         alt="{{ estudiante.avatar }}"
+         style="width:56px;height:56px;border-radius:50%;border:3px solid var(--naranja);object-fit:cover;">
+    <div>
+      <div style="font-weight:700;font-size:1rem;">{{ estudiante.nombre }}</div>
+      <div style="color:var(--naranja);font-weight:800;">⭐ {{ estudiante.puntos }} puntos</div>
+    </div>
+  </div>
+</div>
+
+<div class="libros-grid">
+  {% for libro in libros %}
+  <div class="libro-card">
+    <img src="{{ libro.portada_url }}" alt="{{ libro.titulo }}" class="libro-portada">
+    <div class="libro-info">
+      <h2 class="libro-titulo">{{ libro.titulo }}</h2>
+      <a href="{% url 'libros:lectura' libro.slug %}" class="btn-leer">
+        📖 Leer ahora
+      </a>
+    </div>
+  </div>
+  {% empty %}
+  <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gris);">
+    <p style="font-size:3rem;">📚</p>
+    <p>No hay cuentos disponibles todavía.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}¡Bienvenido! — V&E Academy{% endblock %}
+
+{% block content %}
+<div class="registro-page">
+  <div class="registro-card">
+    <img src="{% static 'img/ve_academy_logo.png' %}" alt="V&E Academy" class="registro-logo">
+    <h1 class="registro-titulo">¡Bienvenido a V&amp;E Academy! 🎉</h1>
+    <p class="registro-subtitulo">Crea tu perfil para comenzar a leer y jugar</p>
+
+    <form method="POST" action="{% url 'registro' %}">
+      {% csrf_token %}
+
+      <!-- Nombre -->
+      <div class="form-group">
+        <label class="form-label" for="nombre">✏️ ¿Cómo te llamas?</label>
+        <input type="text" id="nombre" name="nombre" class="form-input"
+               placeholder="Escribe tu nombre..." required maxlength="50"
+               autocomplete="off">
+      </div>
+
+      <!-- Edad -->
+      <div class="form-group">
+        <label class="form-label">🎂 ¿Cuántos años tienes?</label>
+        <div class="edades-row">
+          {% for edad in edades %}
+          <input type="radio" name="edad" id="edad{{ edad }}" value="{{ edad }}"
+                 class="edad-option" {% if forloop.first %}checked{% endif %}>
+          <label for="edad{{ edad }}" class="edad-label">{{ edad }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Avatar -->
+      <div class="form-group">
+        <label class="form-label">🐾 Elige tu avatar</label>
+        <div class="avatares-grid">
+          {% for av in avatares %}
+          <input type="radio" name="avatar" id="av_{{ av }}" value="{{ av }}"
+                 class="avatar-option" {% if forloop.first %}checked{% endif %}>
+          <label for="av_{{ av }}" class="avatar-label">
+            <img src="{% static 'img/avatars/'|add:av|add:'.png' %}" alt="{{ av }}">
+            <span>{{ av|capfirst }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button type="submit" class="btn-registro">
+        ¡Empezar la aventura! 🚀
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

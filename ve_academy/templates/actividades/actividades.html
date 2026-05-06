@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Actividades: {{ libro.titulo }} — V&E Academy{% endblock %}
+
+{% block content %}
+<div class="actividades-container">
+  <h1 class="page-titulo">✍️ {{ libro.titulo }}</h1>
+  <p class="page-subtitulo">¡Responde las preguntas y gana puntos!</p>
+
+  <!-- Barra de progreso -->
+  <div class="progreso-barra-wrap">
+    <div class="progreso-barra" id="progresoBarra" style="width:0%"></div>
+  </div>
+  <p style="text-align:right;font-size:.85rem;color:var(--gris);margin-top:-20px;margin-bottom:24px;" id="progresoTexto">
+    Pregunta 1 de {{ total_preguntas }}
+  </p>
+
+  <!-- Zona de pregunta -->
+  <div id="zonaPreguntas"></div>
+
+  <!-- Resultado final (oculto al inicio) -->
+  <div id="zonaResultado" style="display:none;">
+    <div class="puntaje-hero">
+      <div style="font-size:4rem;margin-bottom:16px;" id="emoji-resultado">🎉</div>
+      <img src="{% static 'img/avatars/'|add:estudiante.avatar|add:'.png' %}"
+           alt="{{ estudiante.avatar }}" class="puntaje-avatar" id="avatarResultado">
+      <h2 class="puntaje-nombre">¡Bien hecho, {{ estudiante.nombre }}!</h2>
+      <div class="puntaje-total" id="puntosGanados">0</div>
+      <div class="puntaje-label">puntos ganados en esta actividad</div>
+      <div style="font-size:1.1rem;color:var(--gris);margin-bottom:28px;">
+        Total acumulado: <strong id="puntosTotal" style="color:var(--naranja);">0 ⭐</strong>
+      </div>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <a href="{% url 'libros:lista' %}" class="btn btn-azul">📚 Otro cuento</a>
+        <a href="{% url 'ranking' %}" class="btn btn-naranja">🏆 Ver ranking</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PREGUNTAS = {{ preguntas_json|safe }};
+const LIBRO_SLUG = "{{ libro.slug }}";
+const CSRF_TOKEN = "{{ csrf_token }}";
+const LETRAS = ['A', 'B', 'C'];
+
+let indice = 0;
+let puntosGanados = 0;
+let respondida = false;
+
+function renderPregunta() {
+  if (indice >= PREGUNTAS.length) {
+    finalizarActividad();
+    return;
+  }
+  respondida = false;
+  const q = PREGUNTAS[indice];
+  const pct = Math.round((indice / PREGUNTAS.length) * 100);
+
+  document.getElementById('progresoBarra').style.width = pct + '%';
+  document.getElementById('progresoTexto').textContent =
+    `Pregunta ${indice + 1} de ${PREGUNTAS.length}`;
+
+  const html = `
+    <div class="pregunta-card">
+      <div class="pregunta-numero">Pregunta ${indice + 1}</div>
+      <p class="pregunta-enunciado">${q.enunciado}</p>
+      <div class="opciones-lista" id="opciones">
+        ${q.opciones.map((op, i) => `
+          <input type="radio" name="opcion" id="op${i}" value="${i}" class="opcion-radio">
+          <label for="op${i}" class="opcion-label" id="lbl${i}" onclick="seleccionar(${i})">
+            <span class="opcion-letra">${LETRAS[i]}</span>
+            <span>${op}</span>
+          </label>
+        `).join('')}
+      </div>
+      <div class="feedback-msg" id="feedback"></div>
+      <div style="text-align:center;margin-top:24px;">
+        <button class="btn btn-naranja btn-grande" onclick="verificar()" id="btnResponder">
+          ✅ Responder
+        </button>
+      </div>
+    </div>
+  `;
+  document.getElementById('zonaPreguntas').innerHTML = html;
+}
+
+function seleccionar(i) {
+  if (respondida) return;
+  document.querySelectorAll('.opcion-label').forEach(l => {
+    l.classList.remove('seleccionada');
+  });
+}
+
+function verificar() {
+  if (respondida) return;
+  const sel = document.querySelector('input[name="opcion"]:checked');
+  if (!sel) {
+    alert('¡Elige una opción primero!');
+    return;
+  }
+  respondida = true;
+  const elegida = parseInt(sel.value);
+  const correcta = PREGUNTAS[indice].correcta;
+  const fb = document.getElementById('feedback');
+  const btn = document.getElementById('btnResponder');
+
+  // Deshabilitar opciones
+  document.querySelectorAll('input[name="opcion"]').forEach(r => r.disabled = true);
+
+  if (elegida === correcta) {
+    document.getElementById(`lbl${elegida}`).classList.add('correcta');
+    fb.className = 'feedback-msg correcto';
+    fb.textContent = '✅ ¡Correcto! +10 puntos 🎉';
+    puntosGanados += 10;
+  } else {
+    document.getElementById(`lbl${elegida}`).classList.add('incorrecta');
+    document.getElementById(`lbl${correcta}`).classList.add('correcta');
+    fb.className = 'feedback-msg incorrecto';
+    fb.textContent = '❌ ¡Casi! La respuesta correcta está marcada en verde.';
+  }
+
+  btn.textContent = indice + 1 < PREGUNTAS.length ? '➡️ Siguiente pregunta' : '🏁 Ver resultado';
+  btn.onclick = siguientePregunta;
+}
+
+function siguientePregunta() {
+  indice++;
+  renderPregunta();
+}
+
+async function finalizarActividad() {
+  document.getElementById('progresoBarra').style.width = '100%';
+  document.getElementById('progresoTexto').textContent = '¡Completado!';
+  document.getElementById('zonaPreguntas').innerHTML = '';
+
+  // Guardar en backend
+  try {
+    const res = await fetch("{% url 'actividades:guardar' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': CSRF_TOKEN,
+      },
+      body: JSON.stringify({
+        libro_slug: LIBRO_SLUG,
+        puntos: puntosGanados,
+        completado: true,
+      }),
+    });
+    const data = await res.json();
+    document.getElementById('puntosTotal').textContent = data.puntos_totales + ' ⭐';
+  } catch(e) {}
+
+  // Mostrar resultado
+  document.getElementById('puntosGanados').textContent = `+${puntosGanados}`;
+  const emoji = puntosGanados >= PREGUNTAS.length * 10 ? '🌟' :
+                puntosGanados > 0 ? '🎉' : '💪';
+  document.getElementById('emoji-resultado').textContent = emoji;
+  document.getElementById('zonaResultado').style.display = 'block';
+  document.getElementById('zonaResultado').scrollIntoView({ behavior: 'smooth' });
+}
+
+renderPregunta();
+</script>
+{% endblock %}
