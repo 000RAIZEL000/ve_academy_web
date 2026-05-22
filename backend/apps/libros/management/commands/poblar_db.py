@@ -251,6 +251,8 @@ class Command(BaseCommand):
                     'portada': libro_data['portada'],
                     'texto': libro_data['texto'],
                     'orden': libro_data['orden'],
+                    'autor': libro_data.get('autor', 'Anónimo'),
+                    'edad_min': libro_data.get('edad_min', 5),
                     'activo': True,
                 }
             )

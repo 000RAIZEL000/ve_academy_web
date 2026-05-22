@@ -7,11 +7,5 @@ cmds = [
   "python manage.py collectstatic --noinput"
 ]
 
-[phases.deploy]
-cmds = [
-  "python manage.py migrate --noinput",
-  "python manage.py poblar_db"
-]
-
 [start]
 cmd = "gunicorn ve_academy.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
