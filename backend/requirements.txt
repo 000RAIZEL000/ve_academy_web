@@ -1,6 +1,6 @@
 Django==4.2.16
 # MySQL para desarrollo local (XAMPP)
-mysqlclient==2.2.4
+PyMySQL==1.2.0
 # PostgreSQL para producción (Railway) - no borrar
 psycopg2-binary==2.9.9
 gunicorn==21.2.0

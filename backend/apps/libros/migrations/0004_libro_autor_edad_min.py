@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('libros', '0001_initial'),
+        ('libros', '0003_librojuego'),
     ]
 
     operations = [
