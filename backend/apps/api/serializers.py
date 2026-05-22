@@ -28,17 +28,18 @@ class CompraSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CompraEstudiante
-        fields = ['id', 'objeto', 'fecha_compra']
+        fields = ['id', 'objeto', 'fecha_compra', 'equipado']
 
 
 class EstudianteDetailSerializer(serializers.ModelSerializer):
     insignias = InsigniaSerializer(many=True, read_only=True)
     compras = CompraSerializer(many=True, read_only=True)
+    avatar_emoji = serializers.ReadOnlyField()
 
     class Meta:
         model = Estudiante
         fields = [
-            'id', 'nombre', 'edad', 'avatar', 'avatar_url',
+            'id', 'nombre', 'edad', 'avatar', 'avatar_url', 'avatar_emoji',
             'puntos', 'racha_actual', 'max_racha',
             'insignias', 'compras',
         ]
@@ -49,13 +50,13 @@ class PreguntaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Pregunta
-        fields = ['id', 'edad', 'enunciado', 'opciones', 'correcta']
+        fields = ['id', 'edad', 'tipo', 'enunciado', 'opciones', 'correcta']
 
 
 class LibroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Libro
-        fields = ['id', 'titulo', 'slug', 'texto', 'portada_url', 'activo']
+        fields = ['id', 'titulo', 'slug', 'autor', 'edad_min', 'portada_url', 'activo']
 
 
 class LibroDetailSerializer(serializers.ModelSerializer):
@@ -63,7 +64,7 @@ class LibroDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Libro
-        fields = ['id', 'titulo', 'slug', 'texto', 'portada_url', 'activo', 'preguntas']
+        fields = ['id', 'titulo', 'slug', 'autor', 'edad_min', 'texto', 'portada_url', 'activo', 'preguntas']
 
 
 class LibroJuegoSerializer(serializers.ModelSerializer):

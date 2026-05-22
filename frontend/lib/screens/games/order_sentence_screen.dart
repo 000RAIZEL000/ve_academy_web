@@ -1,312 +1,292 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../theme/app_colors.dart';
+import '../../services/api_service.dart';
 import '../../models/game_data.dart';
-import '../../models/libro.dart';
-import '../../widgets/celebration_overlay.dart';
 
 class OrderSentenceScreen extends StatefulWidget {
-  final Libro libro;
-  final BookGameData gameData;
-  final int estudianteId;
-  final int estudianteEdad;
-
-  const OrderSentenceScreen({
-    super.key,
-    required this.libro,
-    required this.gameData,
-    required this.estudianteId,
-    required this.estudianteEdad,
-  });
+  final String slug;
+  final Map<String, dynamic> session;
+  const OrderSentenceScreen({super.key, required this.slug, required this.session});
 
   @override
   State<OrderSentenceScreen> createState() => _OrderSentenceScreenState();
 }
 
 class _OrderSentenceScreenState extends State<OrderSentenceScreen> {
-  late List<String> _sentences;
-  int _round = 0;
-  int _score = 0;
-  bool _showCelebration = false;
-  bool _roundDone = false;
-  bool _roundCorrect = false;
-
-  late List<String> _shuffled; // available chips
-  final List<String> _built = []; // sentence being built
-
-  final _rng = Random();
+  BookGameData? _gameData;
+  bool _loading = true;
+  List<String> _oraciones = [];
+  int _actual = 0;
+  int _correctas = 0;
+  bool _completado = false;
+  List<String> _palabrasDesordenadas = [];
+  List<String> _respuesta = [];
+  bool _verificado = false;
+  bool _esCorrecto = false;
 
   @override
   void initState() {
     super.initState();
-    _sentences = List.from(widget.gameData.oraciones);
-    if (_sentences.isEmpty) _sentences = ['El sol brilla en el cielo'];
-    _setupRound();
+    _cargar();
   }
 
-  void _setupRound() {
-    final words = _sentences[_round].toLowerCase().split(' ');
-    _shuffled = List.from(words)..shuffle(_rng);
-    // Make sure shuffled ≠ original
-    while (_listEquals(_shuffled, words) && words.length > 1) {
-      _shuffled.shuffle(_rng);
+  Future<void> _cargar() async {
+    try {
+      final token = widget.session['token'] as String?;
+      final data = await ApiService().getJuegos(widget.slug, token: token);
+      setState(() {
+        _gameData = data;
+        _oraciones = List<String>.from(data.oraciones)..shuffle(Random());
+        _cargarOracion();
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() => _loading = false);
     }
-    _built.clear();
-    _roundDone = false;
-    _roundCorrect = false;
   }
 
-  bool _listEquals(List<String> a, List<String> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
+  void _cargarOracion() {
+    if (_oraciones.isEmpty || _actual >= _oraciones.length) return;
+    final oracion = _oraciones[_actual];
+    _palabrasDesordenadas = oracion.split(' ')..shuffle(Random());
+    _respuesta = [];
+    _verificado = false;
+    _esCorrecto = false;
+  }
+
+  void _agregarPalabra(String palabra) {
+    if (_verificado) return;
+    setState(() {
+      _palabrasDesordenadas.remove(palabra);
+      _respuesta.add(palabra);
+    });
+  }
+
+  void _quitarPalabra(String palabra) {
+    if (_verificado) return;
+    setState(() {
+      _respuesta.remove(palabra);
+      _palabrasDesordenadas.add(palabra);
+    });
+  }
+
+  void _verificar() {
+    final oracionCorrecta = _oraciones[_actual];
+    final respuestaStr = _respuesta.join(' ');
+    setState(() {
+      _verificado = true;
+      _esCorrecto = respuestaStr == oracionCorrecta;
+      if (_esCorrecto) _correctas++;
+    });
+  }
+
+  void _siguiente() {
+    if (_actual < _oraciones.length - 1) {
+      setState(() { _actual++; _cargarOracion(); });
+    } else {
+      setState(() => _completado = true);
     }
-    return true;
   }
 
-  void _tapChip(int index) {
-    if (_roundDone) return;
+  void _reiniciar() {
     setState(() {
-      _built.add(_shuffled.removeAt(index));
-      _checkAnswer();
-    });
-  }
-
-  void _removeBuilt(int index) {
-    if (_roundDone) return;
-    setState(() {
-      _shuffled.add(_built.removeAt(index));
-    });
-  }
-
-  void _checkAnswer() {
-    if (_shuffled.isNotEmpty) return; // not all words placed yet
-    final target = _sentences[_round].toLowerCase().split(' ');
-    final isCorrect = _listEquals(_built, target);
-    _roundDone = true;
-    _roundCorrect = isCorrect;
-    if (isCorrect) _score += 50;
-
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (!mounted) return;
-      if (_round < _sentences.length - 1) {
-        setState(() {
-          _round++;
-          _setupRound();
-        });
-      } else {
-        setState(() => _showCelebration = true);
-      }
-    });
-  }
-
-  void _clearBuilt() {
-    if (_roundDone) return;
-    setState(() {
-      _shuffled.addAll(_built);
-      _built.clear();
+      _oraciones.shuffle(Random());
+      _actual = 0;
+      _correctas = 0;
+      _completado = false;
+      _cargarOracion();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final maxScore = _sentences.length * 50;
-    final stars = _score >= maxScore ? 3 : _score >= maxScore ~/ 2 ? 2 : 1;
-
     return Scaffold(
-      backgroundColor: const Color(0xFF11998e),
+      backgroundColor: AppColors.fondo,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0d7a6e),
-        foregroundColor: Colors.white,
-        title: Text(
-          '📝 Ordena la Oración',
-          style: GoogleFonts.baloo2(fontWeight: FontWeight.w700),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.texto),
+          onPressed: () => Navigator.pop(context),
         ),
+        title: Text('Ordenar Historia 🔀', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+        centerTitle: true,
         actions: [
-          Center(
-            child: Padding(
+          if (!_completado)
+            Padding(
               padding: const EdgeInsets.only(right: 16),
-              child: Text(
-                '⭐ $_score pts',
-                style: const TextStyle(
-                    color: Colors.amber, fontWeight: FontWeight.bold),
-              ),
+              child: Center(child: Text('${_actual + 1}/${_oraciones.length}',
+                  style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textoSuave))),
             ),
-          ),
         ],
       ),
-      body: Stack(
-        children: [
-          Padding(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
+          : _oraciones.isEmpty ? _buildVacio() : _completado ? _buildCompletado() : _buildJuego(),
+    );
+  }
+
+  Widget _buildJuego() {
+    return Column(
+      children: [
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: (_actual + 1) / _oraciones.length,
+              backgroundColor: AppColors.rosa.withOpacity(0.2),
+              valueColor: const AlwaysStoppedAnimation(AppColors.rosaOscuro),
+              minHeight: 8,
+            ),
+          ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Progress
-                LinearProgressIndicator(
-                  value: (_round + 1) / _sentences.length,
-                  backgroundColor: Colors.white24,
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(Colors.amber),
-                  minHeight: 8,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Oración ${_round + 1} de ${_sentences.length}',
-                  style: const TextStyle(color: Colors.white60, fontSize: 13),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-
-                Text(
-                  '¡Ordena las palabras para formar la frase!',
-                  style: GoogleFonts.baloo2(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.rosa.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  textAlign: TextAlign.center,
+                  child: Text('Ordena las palabras para formar la frase correcta:',
+                      style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.rosaOscuro),
+                      textAlign: TextAlign.center),
                 ),
                 const SizedBox(height: 20),
 
-                // Answer area
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  constraints: const BoxConstraints(minHeight: 80),
+                // Zona de respuesta
+                Text('Tu respuesta:', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textoSuave, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 70),
+                  child: Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(20),
+                    color: _verificado
+                        ? (_esCorrecto ? AppColors.exito.withOpacity(0.2) : AppColors.error.withOpacity(0.2))
+                        : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: _roundDone
-                          ? (_roundCorrect ? Colors.greenAccent : Colors.redAccent)
-                          : Colors.white38,
+                      color: _verificado ? (_esCorrecto ? AppColors.exitoTexto : AppColors.errorTexto) : AppColors.lila,
                       width: 2,
                     ),
+                    boxShadow: [AppColors.sombraSuave],
                   ),
-                  child: _built.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Toca las palabras de abajo',
-                            style: TextStyle(
-                                color: Colors.white38, fontSize: 14),
-                          ),
-                        )
-                      : Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _built.asMap().entries.map((e) {
-                            return GestureDetector(
-                              onTap: () => _removeBuilt(e.key),
-                              child: Chip(
-                                label: Text(
-                                  e.value,
-                                  style: GoogleFonts.baloo2(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
-                                    color: const Color(0xFF0d7a6e),
-                                  ),
-                                ),
-                                backgroundColor: Colors.white,
-                                side: BorderSide.none,
-                              ),
-                            );
-                          }).toList(),
+                  child: Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children: _respuesta.map((p) => GestureDetector(
+                      onTap: () => _quitarPalabra(p),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.lila.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        child: Text(p, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.lilaOscuro)),
+                      ),
+                    )).toList(),
+                  ),
+                ),
                 ),
 
-                // Feedback
-                if (_roundDone)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      _roundCorrect ? '¡Correcto! 🎉' : '¡Casi! Sigue intentando 💪',
-                      style: TextStyle(
-                        color: _roundCorrect ? Colors.greenAccent : Colors.orangeAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                if (_verificado) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    _esCorrecto ? '✅ ¡Perfecto!' : '❌ La frase correcta era:\n"${_oraciones[_actual]}"',
+                    style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w700,
+                        color: _esCorrecto ? AppColors.exitoTexto : AppColors.errorTexto),
                   ),
+                ],
+
+                const SizedBox(height: 20),
+
+                // Palabras disponibles
+                Text('Palabras disponibles:', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textoSuave, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: _palabrasDesordenadas.map((p) => GestureDetector(
+                    onTap: () => _agregarPalabra(p),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.celeste.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.celesteOscuro, width: 1.5),
+                      ),
+                      child: Text(p, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.celesteOscuro)),
+                    ),
+                  )).toList(),
+                ),
 
                 const SizedBox(height: 24),
 
-                // Shuffled chips
-                Text(
-                  'Palabras disponibles:',
-                  style: GoogleFonts.nunito(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: _shuffled.asMap().entries.map((e) {
-                    return GestureDetector(
-                      onTap: () => _tapChip(e.key),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFf7971e), Color(0xFFffd200)],
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(40),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
-                            )
-                          ],
-                        ),
-                        child: Text(
-                          e.value,
-                          style: GoogleFonts.baloo2(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-
-                const Spacer(),
-
-                // Clear button
-                if (!_roundDone && _built.isNotEmpty)
-                  TextButton.icon(
-                    onPressed: _clearBuilt,
-                    icon: const Icon(Icons.refresh_rounded,
-                        color: Colors.white70),
-                    label: Text(
-                      'Limpiar',
-                      style: GoogleFonts.nunito(
-                          color: Colors.white70, fontSize: 14),
+                if (!_verificado)
+                  SizedBox(
+                    width: double.infinity, height: 50,
+                    child: ElevatedButton(
+                      onPressed: _respuesta.isEmpty ? null : _verificar,
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.rosa, elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                      child: Text('Verificar', style: GoogleFonts.baloo2(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.texto)),
+                    ),
+                  )
+                else
+                  SizedBox(
+                    width: double.infinity, height: 50,
+                    child: ElevatedButton(
+                      onPressed: _siguiente,
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.rosa, elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                      child: Text(_actual < _oraciones.length - 1 ? 'Siguiente →' : '¡Ver resultado!',
+                          style: GoogleFonts.baloo2(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.texto)),
                     ),
                   ),
               ],
             ),
           ),
-          if (_showCelebration)
-            CelebrationOverlay(
-              message: '$_score de $maxScore puntos',
-              stars: stars,
-              onComplete: () {
-                setState(() => _showCelebration = false);
-                Navigator.pop(context, _score);
-              },
-            ),
-        ],
-      ),
+        ),
+      ],
     );
   }
+
+  Widget _buildCompletado() => Center(child: Padding(
+    padding: const EdgeInsets.all(28),
+    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      const Text('🎉', style: TextStyle(fontSize: 80)),
+      const SizedBox(height: 16),
+      Text('¡Completado!', style: GoogleFonts.baloo2(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.texto)),
+      Text('$_correctas/${_oraciones.length} frases correctas',
+          style: GoogleFonts.nunito(fontSize: 18, color: AppColors.textoSuave)),
+      const SizedBox(height: 24),
+      SizedBox(width: double.infinity, height: 50,
+          child: ElevatedButton.icon(
+            onPressed: _reiniciar,
+            icon: const Icon(Icons.refresh_rounded),
+            label: Text('Jugar otra vez', style: GoogleFonts.baloo2(fontSize: 17, fontWeight: FontWeight.w700)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.rosa, elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+          )),
+      const SizedBox(height: 12),
+      TextButton(onPressed: () => Navigator.pop(context),
+          child: Text('Volver', style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave))),
+    ]),
+  ));
+
+  Widget _buildVacio() => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+    const Text('🔀', style: TextStyle(fontSize: 56)),
+    const SizedBox(height: 16),
+    Text('Sin oraciones para este libro', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Volver')),
+  ]));
 }

@@ -1,335 +1,233 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../theme/app_colors.dart';
+import '../../services/api_service.dart';
 import '../../models/game_data.dart';
-import '../../models/libro.dart';
-import '../../widgets/celebration_overlay.dart';
 
 class MemoryScreen extends StatefulWidget {
-  final Libro libro;
-  final BookGameData gameData;
-  final int estudianteId;
-  final int estudianteEdad;
-
-  const MemoryScreen({
-    super.key,
-    required this.libro,
-    required this.gameData,
-    required this.estudianteId,
-    required this.estudianteEdad,
-  });
+  final String slug;
+  final Map<String, dynamic> session;
+  const MemoryScreen({super.key, required this.slug, required this.session});
 
   @override
   State<MemoryScreen> createState() => _MemoryScreenState();
 }
 
-class _MemoryScreenState extends State<MemoryScreen>
-    with TickerProviderStateMixin {
-  late List<_MemCard> _cards;
+class _MemoryScreenState extends State<MemoryScreen> {
+  BookGameData? _gameData;
+  bool _loading = true;
+  List<_MemCard> _cards = [];
   int? _firstFlipped;
-  int? _secondFlipped;
-  bool _checking = false;
-  int _matches = 0;
-  int _score = 0;
-  bool _showCelebration = false;
-
-  // Per-card flip controllers
-  late List<AnimationController> _flipCtrl;
-  late List<Animation<double>> _flipAnim;
-
-  final _rng = Random();
+  bool _blocking = false;
+  int _moves = 0;
+  int _pares = 0;
+  bool _completado = false;
 
   @override
   void initState() {
     super.initState();
-    _buildCards();
+    _cargar();
   }
 
-  void _buildCards() {
-    final words = widget.gameData.palabras.isNotEmpty
-        ? widget.gameData.palabras
-        : [
-            const GameWord(word: 'SOL', emoji: '☀️'),
-            const GameWord(word: 'LUNA', emoji: '🌙'),
-            const GameWord(word: 'PATO', emoji: '🦆'),
-          ];
-
-    _cards = [];
-    for (int i = 0; i < words.length; i++) {
-      final gw = words[i];
-      _cards.add(_MemCard(
-          pairId: i, isWord: true, word: gw.word, emoji: gw.emoji));
-      _cards.add(_MemCard(
-          pairId: i, isWord: false, word: gw.word, emoji: gw.emoji));
+  Future<void> _cargar() async {
+    try {
+      final token = widget.session['token'] as String?;
+      final data = await ApiService().getJuegos(widget.slug, token: token);
+      setState(() {
+        _gameData = data;
+        _iniciarJuego(data);
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() => _loading = false);
     }
-    _cards.shuffle(_rng);
-
-    _flipCtrl = List.generate(
-      _cards.length,
-      (_) => AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 350),
-      ),
-    );
-    _flipAnim = _flipCtrl
-        .map((c) =>
-            Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-              parent: c,
-              curve: Curves.easeInOut,
-            )))
-        .toList();
   }
 
-  @override
-  void dispose() {
-    for (final c in _flipCtrl) {
-      c.dispose();
+  void _iniciarJuego(BookGameData data) {
+    final palabras = data.palabras.take(6).toList();
+    final pairs = <_MemCard>[];
+    for (var i = 0; i < palabras.length; i++) {
+      pairs.add(_MemCard(id: i * 2, text: palabras[i].word, emoji: palabras[i].emoji, pairId: i));
+      pairs.add(_MemCard(id: i * 2 + 1, text: palabras[i].word, emoji: palabras[i].emoji, pairId: i, isEmoji: true));
     }
-    super.dispose();
+    pairs.shuffle(Random());
+    _cards = pairs;
+    _pares = 0;
+    _moves = 0;
+    _completado = false;
   }
 
-  void _onCardTap(int index) {
-    if (_checking) return;
-    if (_cards[index].isMatched) return;
-    if (_cards[index].isFlipped) return;
-    if (_firstFlipped == index) return;
+  void _voltear(int idx) {
+    if (_blocking) return;
+    final card = _cards[idx];
+    if (card.revealed || card.matched) return;
 
-    _flipCtrl[index].forward();
-    setState(() => _cards[index].isFlipped = true);
+    setState(() => _cards[idx] = card.copyWith(revealed: true));
 
     if (_firstFlipped == null) {
-      _firstFlipped = index;
-      return;
-    }
-
-    _secondFlipped = index;
-    _checking = true;
-
-    final first = _cards[_firstFlipped!];
-    final second = _cards[_secondFlipped!];
-
-    if (first.pairId == second.pairId) {
-      // Match!
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (!mounted) return;
-        setState(() {
-          _cards[_firstFlipped!].isMatched = true;
-          _cards[_secondFlipped!].isMatched = true;
-          _firstFlipped = null;
-          _secondFlipped = null;
-          _checking = false;
-          _matches++;
-          _score += 20;
-          if (_matches == _cards.length ~/ 2) {
-            _showCelebration = true;
-          }
-        });
-      });
+      _firstFlipped = idx;
     } else {
-      // No match: flip back after delay
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        if (!mounted) return;
-        _flipCtrl[_firstFlipped!].reverse();
-        _flipCtrl[_secondFlipped!].reverse();
+      final first = _cards[_firstFlipped!];
+      _moves++;
+      if (first.pairId == card.pairId) {
         setState(() {
-          _cards[_firstFlipped!].isFlipped = false;
-          _cards[_secondFlipped!].isFlipped = false;
-          _firstFlipped = null;
-          _secondFlipped = null;
-          _checking = false;
+          _cards[_firstFlipped!] = first.copyWith(matched: true);
+          _cards[idx] = card.copyWith(matched: true);
+          _pares++;
+          _completado = _pares == _cards.length ~/ 2;
         });
-      });
+        _firstFlipped = null;
+      } else {
+        _blocking = true;
+        _firstFlipped = null;
+        Future.delayed(const Duration(milliseconds: 900), () {
+          if (!mounted) return;
+          setState(() {
+            _cards[_firstFlipped ?? idx] = first.copyWith(revealed: false);
+            _cards[idx] = card.copyWith(revealed: false);
+            _blocking = false;
+          });
+        });
+      }
     }
+  }
+
+  void _reiniciar() {
+    if (_gameData != null) setState(() => _iniciarJuego(_gameData!));
   }
 
   @override
   Widget build(BuildContext context) {
-    final totalPairs = _cards.length ~/ 2;
-    final stars = _score >= totalPairs * 20
-        ? 3
-        : _score >= totalPairs * 12
-            ? 2
-            : 1;
-
     return Scaffold(
-      backgroundColor: const Color(0xFF4a148c),
+      backgroundColor: AppColors.fondo,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2d0c6c),
-        foregroundColor: Colors.white,
-        title: Text(
-          '🃏 Memoria de Palabras',
-          style: GoogleFonts.baloo2(fontWeight: FontWeight.w700),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.texto),
+          onPressed: () => Navigator.pop(context),
         ),
+        title: Text('Memoria 🧠', style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.texto)),
+        centerTitle: true,
         actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Text(
-                '⭐ $_score pts',
-                style: const TextStyle(
-                    color: Colors.amber, fontWeight: FontWeight.bold),
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: IconButton(icon: const Icon(Icons.refresh_rounded, color: AppColors.rosaOscuro), onPressed: _reiniciar),
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
+          : Column(
               children: [
-                Text(
-                  'Empareja cada palabra con su imagen',
-                  style: GoogleFonts.baloo2(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '$_matches de $totalPairs pares encontrados',
-                  style: const TextStyle(color: Colors.white38, fontSize: 13),
-                ),
-                const SizedBox(height: 12),
+                _buildStats(),
                 Expanded(
-                  child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1.4,
-                    ),
-                    itemCount: _cards.length,
-                    itemBuilder: (ctx, i) => _buildCard(i),
-                  ),
+                  child: _completado ? _buildCompletado() : _buildGrid(),
                 ),
               ],
             ),
-          ),
-          if (_showCelebration)
-            CelebrationOverlay(
-              message: '¡Encontraste todos los pares!\n+$_score puntos',
-              stars: stars,
-              onComplete: () {
-                setState(() => _showCelebration = false);
-                Navigator.pop(context, _score);
-              },
-            ),
-        ],
-      ),
     );
   }
 
-  Widget _buildCard(int index) {
-    final card = _cards[index];
-    return GestureDetector(
-      onTap: () => _onCardTap(index),
-      child: AnimatedBuilder(
-        animation: _flipAnim[index],
-        builder: (ctx, _) {
-          final angle = _flipAnim[index].value * pi;
-          final isFront = _flipAnim[index].value >= 0.5;
-          return Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.001)
-              ..rotateY(angle),
-            child: isFront
-                ? Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.rotationY(pi),
-                    child: _buildFront(card),
-                  )
-                : _buildBack(card),
+  Widget _buildStats() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+        _statChip('🎯', '$_pares/${_cards.length ~/ 2}', 'Pares'),
+        _statChip('👆', '$_moves', 'Movimientos'),
+      ]),
+    );
+  }
+
+  Widget _statChip(String emoji, String value, String label) => Column(mainAxisSize: MainAxisSize.min, children: [
+    Text(emoji, style: const TextStyle(fontSize: 20)),
+    Text(value, style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.texto)),
+    Text(label, style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textoSuave)),
+  ]);
+
+  Widget _buildGrid() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.9,
+        ),
+        itemCount: _cards.length,
+        itemBuilder: (_, i) {
+          final card = _cards[i];
+          return GestureDetector(
+            onTap: () => _voltear(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              decoration: BoxDecoration(
+                color: card.matched
+                    ? AppColors.exito.withOpacity(0.3)
+                    : card.revealed
+                        ? Colors.white
+                        : AppColors.rosa.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: card.matched ? AppColors.exitoTexto : (card.revealed ? AppColors.lilaOscuro : AppColors.rosa),
+                  width: 2,
+                ),
+                boxShadow: [AppColors.sombraSuave],
+              ),
+              child: Center(
+                child: card.revealed || card.matched
+                    ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Text(card.isEmoji ? card.emoji : '📝', style: const TextStyle(fontSize: 30)),
+                        const SizedBox(height: 4),
+                        if (!card.isEmoji)
+                          Text(card.text, style: GoogleFonts.baloo2(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.texto),
+                              textAlign: TextAlign.center, maxLines: 2),
+                      ])
+                    : const Text('❓', style: TextStyle(fontSize: 36)),
+              ),
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildBack(_MemCard card) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: card.isMatched
-              ? [Colors.greenAccent.shade700, Colors.green.shade300]
-              : [const Color(0xFF9C27B0), const Color(0xFFE040FB)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _buildCompletado() {
+    return Center(
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        const Text('🏆', style: TextStyle(fontSize: 80)),
+        const SizedBox(height: 16),
+        Text('¡Lo lograste!', style: GoogleFonts.baloo2(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.texto)),
+        Text('Completaste en $_moves movimientos', style: GoogleFonts.nunito(fontSize: 16, color: AppColors.textoSuave)),
+        const SizedBox(height: 24),
+        ElevatedButton.icon(
+          onPressed: _reiniciar,
+          icon: const Icon(Icons.refresh_rounded),
+          label: Text('Jugar otra vez', style: GoogleFonts.baloo2(fontSize: 17, fontWeight: FontWeight.w700)),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.rosa, elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: card.isMatched ? Colors.greenAccent : Colors.purple.shade200,
-          width: 2,
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Volver a juegos', style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave)),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(60),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Center(
-        child: card.isMatched
-            ? const Text('✅', style: TextStyle(fontSize: 36))
-            : const Text('❓', style: TextStyle(fontSize: 36)),
-      ),
-    );
-  }
-
-  Widget _buildFront(_MemCard card) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.purple.shade300, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(40),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Center(
-        child: card.isWord
-            ? Text(
-                card.word,
-                style: GoogleFonts.baloo2(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF4a148c),
-                ),
-                textAlign: TextAlign.center,
-              )
-            : Text(
-                card.emoji,
-                style: const TextStyle(fontSize: 48),
-              ),
-      ),
+      ]),
     );
   }
 }
 
 class _MemCard {
-  final int pairId;
-  final bool isWord;
-  final String word;
+  final int id;
+  final String text;
   final String emoji;
-  bool isFlipped;
-  bool isMatched;
-
-  _MemCard({
-    required this.pairId,
-    required this.isWord,
-    required this.word,
-    required this.emoji,
-    this.isFlipped = false,
-    this.isMatched = false,
-  });
+  final int pairId;
+  final bool isEmoji;
+  final bool revealed;
+  final bool matched;
+  const _MemCard({required this.id, required this.text, required this.emoji, required this.pairId,
+      this.isEmoji = false, this.revealed = false, this.matched = false});
+  _MemCard copyWith({bool? revealed, bool? matched}) => _MemCard(
+      id: id, text: text, emoji: emoji, pairId: pairId, isEmoji: isEmoji,
+      revealed: revealed ?? this.revealed, matched: matched ?? this.matched);
 }

@@ -1,251 +1,300 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/libro.dart';
-import '../services/api_service.dart';
-import '../services/session_service.dart';
 import '../theme/app_colors.dart';
-import '../widgets/bubbles_background.dart';
-import '../widgets/book_cover.dart';
+import '../services/api_service.dart';
 import 'book_detail_screen.dart';
 
 class LibraryScreen extends StatefulWidget {
-  final int estudianteId;
-  final int estudianteEdad;
-
-  const LibraryScreen({
-    super.key,
-    required this.estudianteId,
-    required this.estudianteEdad,
-  });
+  final Map<String, dynamic> session;
+  const LibraryScreen({super.key, required this.session});
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  final ApiService _api = ApiService();
   List<dynamic> _libros = [];
-  Map<String, dynamic> _progresoMap = {};
-  bool _isLoading = true;
+  List<dynamic> _filtrados = [];
+  bool _loading = true;
+  String _busqueda = '';
+  int? _edadFiltro;
+  final _searchCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _cargarLibros();
   }
 
-  Future<void> _load() async {
-    final token = await SessionService.getToken();
-    final results = await Future.wait([
-      _api.getLibros(token: token),
-      _api.getProgreso(widget.estudianteId, token: token),
-    ]);
-    final progreso = results[1] as List<dynamic>;
-    final Map<String, dynamic> pMap = {};
-    for (final p in progreso) {
-      pMap[p['libro_slug'] as String] = p;
-    }
-    setState(() {
-      _libros = results[0] as List<dynamic>;
-      _progresoMap = pMap;
-      _isLoading = false;
-    });
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
-  Future<void> _navigateToBook(dynamic libroData) async {
-    final token = await SessionService.getToken();
+  Future<void> _cargarLibros() async {
+    setState(() => _loading = true);
     try {
-      final libroJson = await _api.getLibroDetalle(
-          libroData['slug'] as String, token: token);
-      final libro = Libro.fromJson(libroJson);
-      if (!mounted) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BookDetailScreen(
-            libro: libro,
-            estudianteId: widget.estudianteId,
-            estudianteEdad: widget.estudianteEdad,
-          ),
-        ),
-      );
-      _load();
+      final token = widget.session['token'] as String?;
+      final libros = await ApiService().getLibros(token: token);
+      setState(() {
+        _libros = libros;
+        _aplicarFiltros();
+        _loading = false;
+      });
     } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo cargar el libro.')),
-      );
+      setState(() => _loading = false);
     }
+  }
+
+  void _aplicarFiltros() {
+    setState(() {
+      _filtrados = _libros.where((l) {
+        final titulo = (l['titulo'] as String? ?? '').toLowerCase();
+        final autor = (l['autor'] as String? ?? '').toLowerCase();
+        final busq = _busqueda.toLowerCase();
+        final matchBusq = busq.isEmpty || titulo.contains(busq) || autor.contains(busq);
+        final edadMin = (l['edad_min'] as num?)?.toInt() ?? 5;
+        final matchEdad = _edadFiltro == null || edadMin <= _edadFiltro!;
+        return matchBusq && matchEdad;
+      }).toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return BubblesBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: AppColors.headerGradientEnd,
-          foregroundColor: Colors.white,
-          title: Text(
-            '📚 Biblioteca',
-            style: GoogleFonts.baloo2(fontWeight: FontWeight.w700),
-          ),
-          elevation: 0,
+    final w = MediaQuery.of(context).size.width;
+    final cols = w > 900 ? 3 : (w > 600 ? 2 : 2);
+    return Scaffold(
+      backgroundColor: AppColors.fondo,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            _buildSearchBar(),
+            _buildFiltrosEdad(),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
+                  : _filtrados.isEmpty
+                      ? _buildEmpty()
+                      : RefreshIndicator(
+                          onRefresh: _cargarLibros,
+                          color: AppColors.rosaOscuro,
+                          child: GridView.builder(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: w > 700 ? 32 : 16, vertical: 12),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: cols,
+                              childAspectRatio: 0.72,
+                              crossAxisSpacing: 14,
+                              mainAxisSpacing: 14,
+                            ),
+                            itemCount: _filtrados.length,
+                            itemBuilder: (_, i) => _BookCard(
+                              libro: _filtrados[i],
+                              colorIndex: i,
+                              onTap: () => _abrirLibro(_filtrados[i]),
+                            ),
+                          ),
+                        ),
+            ),
+          ],
         ),
-        body: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColors.morado))
-            : RefreshIndicator(
-                onRefresh: _load,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                      child: Text(
-                        '¿Qué cuento quieres leer hoy? 🌟',
-                        style: GoogleFonts.baloo2(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.texto,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: GridView.builder(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.7,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: _libros.length,
-                        itemBuilder: (ctx, i) {
-                          final libro = _libros[i];
-                          final slug = libro['slug'] as String;
-                          final p = _progresoMap[slug];
-                          return _LibraryCard(
-                            libro: libro,
-                            progreso: p,
-                            index: i,
-                            onTap: () => _navigateToBook(libro),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Row(children: [
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Mis Lecturas', style: GoogleFonts.baloo2(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.texto)),
+          Text('${_filtrados.length} cuentos disponibles',
+              style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave)),
+        ]),
+        const Spacer(),
+        const Text('📚', style: TextStyle(fontSize: 32)),
+      ]),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [AppColors.sombraSuave],
+        ),
+        child: TextField(
+          controller: _searchCtrl,
+          onChanged: (v) {
+            _busqueda = v;
+            _aplicarFiltros();
+          },
+          decoration: InputDecoration(
+            hintText: 'Buscar cuento o autor...',
+            prefixIcon: const Icon(Icons.search_rounded, color: AppColors.lilaOscuro),
+            suffixIcon: _busqueda.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear_rounded, color: AppColors.textoSuave),
+                    onPressed: () {
+                      _searchCtrl.clear();
+                      _busqueda = '';
+                      _aplicarFiltros();
+                    },
+                  )
+                : null,
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFiltrosEdad() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Row(children: [
+        Text('Edad: ', style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textoSuave)),
+        const SizedBox(width: 8),
+        ...[null, 5, 6, 7].map((e) {
+          final sel = _edadFiltro == e;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: () {
+                _edadFiltro = e;
+                _aplicarFiltros();
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: sel ? AppColors.rosa : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: sel ? AppColors.rosaOscuro : AppColors.lila, width: 1.5),
+                  boxShadow: sel ? [AppColors.sombraRosa] : [],
                 ),
+                child: Text(e == null ? 'Todos' : '$e años',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: sel ? AppColors.rosaOscuro : AppColors.textoSuave,
+                    )),
               ),
+            ),
+          );
+        }),
+      ]),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Center(
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        const Text('🔍', style: TextStyle(fontSize: 56)),
+        const SizedBox(height: 16),
+        Text('No encontramos cuentos',
+            style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.texto)),
+        const SizedBox(height: 8),
+        Text('Intenta con otra búsqueda o filtro',
+            style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave)),
+      ]),
+    );
+  }
+
+  void _abrirLibro(Map<String, dynamic> libro) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BookDetailScreen(
+          libro: libro,
+          session: widget.session,
+        ),
       ),
     );
   }
 }
 
-class _LibraryCard extends StatelessWidget {
-  final dynamic libro;
-  final dynamic progreso;
-  final int index;
+class _BookCard extends StatelessWidget {
+  final Map<String, dynamic> libro;
+  final int colorIndex;
   final VoidCallback onTap;
 
-  const _LibraryCard({
+  const _BookCard({
     required this.libro,
-    required this.progreso,
-    required this.index,
+    required this.colorIndex,
     required this.onTap,
   });
 
+  static const _levelEmojis = ['⭐', '⭐⭐', '⭐⭐⭐'];
+  static const _ageColors = {5: Color(0xFFFFE4F0), 6: Color(0xFFEDE4FF), 7: Color(0xFFDBF0FF)};
+
   @override
   Widget build(BuildContext context) {
-    final titulo = libro['titulo'] as String? ?? '';
-    final portadaUrl = libro['portada_url'] as String? ?? '';
-    final pct = progreso != null ? (progreso['porcentaje'] as int? ?? 0) : 0;
-    final completado =
-        progreso != null ? (progreso['completado'] as bool? ?? false) : false;
+    final bgColor = AppColors.tarjetas[colorIndex % AppColors.tarjetas.length];
+    final portadaUrl = ApiService.resolveStaticUrl(libro['portada_url'] as String? ?? '');
+    final edadMin = (libro['edad_min'] as num?)?.toInt() ?? 5;
+    final autor = libro['autor'] as String? ?? 'Anónimo';
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: bgColor,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(
-                color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
-          ],
-          border: completado
-              ? Border.all(color: AppColors.verde, width: 2.5)
-              : null,
+          boxShadow: [AppColors.sombraSuave],
         ),
-        clipBehavior: Clip.antiAlias,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Portada
             Expanded(
               flex: 3,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  BookCoverWidget(
-                      portadaUrl: portadaUrl, titulo: titulo, index: index),
-                  if (completado)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppColors.verde,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.check,
-                            color: Colors.white, size: 14),
-                      ),
-                    ),
-                ],
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                child: portadaUrl.isNotEmpty
+                    ? Image.network(portadaUrl, fit: BoxFit.cover, width: double.infinity,
+                        errorBuilder: (_, __, ___) => _coverFallback(bgColor))
+                    : _coverFallback(bgColor),
               ),
             ),
+            // Info
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      titulo,
-                      style: GoogleFonts.baloo2(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: AppColors.texto,
-                        height: 1.1,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const Spacer(),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(50),
-                      child: LinearProgressIndicator(
-                        value: pct / 100,
-                        backgroundColor: const Color(0xFFE0E0E0),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          completado ? AppColors.verde : AppColors.azul,
-                        ),
-                        minHeight: 7,
-                      ),
-                    ),
+                    Text(libro['titulo'] as String? ?? '',
+                        style: GoogleFonts.baloo2(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.texto),
+                        maxLines: 2, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
-                    Text(
-                      pct == 0 ? 'Sin comenzar' : '$pct%',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: completado ? AppColors.verde : AppColors.gris,
+                    Text(autor,
+                        style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textoSuave),
+                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const Spacer(),
+                    Row(children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _ageColors[edadMin] ?? AppColors.rosa.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text('$edadMin+ años',
+                            style: GoogleFonts.nunito(fontSize: 10, fontWeight: FontWeight.w700,
+                                color: AppColors.rosaOscuro)),
                       ),
-                    ),
+                    ]),
                   ],
                 ),
               ),
@@ -253,6 +302,13 @@ class _LibraryCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _coverFallback(Color bg) {
+    return Container(
+      color: bg,
+      child: const Center(child: Text('📖', style: TextStyle(fontSize: 52))),
     );
   }
 }

@@ -1,518 +1,315 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/api_service.dart';
-import '../services/session_service.dart';
 import '../theme/app_colors.dart';
-import '../widgets/bubbles_background.dart';
-import 'login_screen.dart';
-import 'library_screen.dart';
-import 'shop_screen.dart';
-import 'achievements_screen.dart';
-import 'ranking_screen.dart';
-import 'profile_screen.dart';
-import 'progress_screen.dart';
-import 'history_screen.dart';
-import 'coming_soon_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  final int estudianteId;
-  final int estudianteEdad;
-
-  const HomeScreen({
-    super.key,
-    required this.estudianteId,
-    required this.estudianteEdad,
-  });
+  final Map<String, dynamic> session;
+  final void Function(int index) onNavigate;
+  const HomeScreen({super.key, required this.session, required this.onNavigate});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final ApiService _api = ApiService();
-  Map<String, dynamic>? _estudiante;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    try {
-      final token = await SessionService.getToken();
-      final data = await _api.getEstudiante(widget.estudianteId, token: token);
-      setState(() {
-        _estudiante = data;
-        _isLoading = false;
-      });
-    } catch (_) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _handleLogout() async {
-    await SessionService.clearSession();
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
-  }
-
-  void _navigate(Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen))
-        .then((_) => _loadData());
-  }
-
-  List<_FeatureTile> get _features => [
-        _FeatureTile(
-          emoji: '📚',
-          label: 'Biblioteca',
-          colors: AppColors.featureGradients[0],
-          available: true,
-          onTap: () => _navigate(LibraryScreen(
-              estudianteId: widget.estudianteId,
-              estudianteEdad: widget.estudianteEdad)),
-        ),
-        _FeatureTile(
-          emoji: '🧩',
-          label: 'Quiz',
-          colors: AppColors.featureGradients[1],
-          available: true,
-          onTap: () => _navigate(LibraryScreen(
-              estudianteId: widget.estudianteId,
-              estudianteEdad: widget.estudianteEdad)),
-        ),
-        _FeatureTile(
-          emoji: '📊',
-          label: 'Mi Progreso',
-          colors: AppColors.featureGradients[2],
-          available: true,
-          onTap: () => _navigate(ProgressScreen(
-              estudianteId: widget.estudianteId,
-              estudianteEdad: widget.estudianteEdad)),
-        ),
-        _FeatureTile(
-          emoji: '🏆',
-          label: 'Logros',
-          colors: AppColors.featureGradients[3],
-          available: true,
-          onTap: () => _navigate(
-              AchievementsScreen(estudianteId: widget.estudianteId)),
-        ),
-        _FeatureTile(
-          emoji: '🥇',
-          label: 'Ranking',
-          colors: AppColors.featureGradients[4],
-          available: true,
-          onTap: () => _navigate(RankingScreen(
-              estudianteId: widget.estudianteId,
-              estudianteEdad: widget.estudianteEdad)),
-        ),
-        _FeatureTile(
-          emoji: '🎁',
-          label: 'Tienda',
-          colors: AppColors.featureGradients[5],
-          available: true,
-          onTap: () =>
-              _navigate(ShopScreen(estudianteId: widget.estudianteId)),
-        ),
-        _FeatureTile(
-          emoji: '🔥',
-          label: 'Rachas',
-          colors: AppColors.featureGradients[6],
-          available: true,
-          onTap: () =>
-              _navigate(ProfileScreen(estudianteId: widget.estudianteId)),
-        ),
-        _FeatureTile(
-          emoji: '👤',
-          label: 'Mi Perfil',
-          colors: AppColors.featureGradients[7],
-          available: true,
-          onTap: () =>
-              _navigate(ProfileScreen(estudianteId: widget.estudianteId)),
-        ),
-        _FeatureTile(
-          emoji: '👩‍🏫',
-          label: 'Panel Docente',
-          colors: AppColors.featureGradients[8],
-          available: false,
-          onTap: () => _navigate(ComingSoonScreen(
-              featureName: 'Panel Docente',
-              emoji: '👩‍🏫',
-              colors: AppColors.featureGradients[8])),
-        ),
-        _FeatureTile(
-          emoji: '📈',
-          label: 'Reportes',
-          colors: AppColors.featureGradients[9],
-          available: false,
-          onTap: () => _navigate(ComingSoonScreen(
-              featureName: 'Reportes',
-              emoji: '📈',
-              colors: AppColors.featureGradients[9])),
-        ),
-        _FeatureTile(
-          emoji: '⭐',
-          label: 'Niveles',
-          colors: AppColors.featureGradients[10],
-          available: false,
-          onTap: () => _navigate(ComingSoonScreen(
-              featureName: 'Niveles',
-              emoji: '⭐',
-              colors: AppColors.featureGradients[10])),
-        ),
-        _FeatureTile(
-          emoji: '🎧',
-          label: 'Modo Escucha',
-          colors: AppColors.featureGradients[11],
-          available: false,
-          onTap: () => _navigate(ComingSoonScreen(
-              featureName: 'Modo Escucha',
-              emoji: '🎧',
-              colors: AppColors.featureGradients[11])),
-        ),
-        _FeatureTile(
-          emoji: '📖',
-          label: 'Historial',
-          colors: AppColors.featureGradients[12],
-          available: true,
-          onTap: () =>
-              _navigate(HistoryScreen(estudianteId: widget.estudianteId)),
-        ),
-        _FeatureTile(
-          emoji: '🗂️',
-          label: 'Gestión',
-          colors: AppColors.featureGradients[13],
-          available: false,
-          onTap: () => _navigate(ComingSoonScreen(
-              featureName: 'Gestión de Contenido',
-              emoji: '🗂️',
-              colors: AppColors.featureGradients[13])),
-        ),
-        _FeatureTile(
-          emoji: '🔐',
-          label: 'Admin',
-          colors: AppColors.featureGradients[14],
-          available: false,
-          onTap: () => _navigate(ComingSoonScreen(
-              featureName: 'Administración',
-              emoji: '🔐',
-              colors: AppColors.featureGradients[14])),
-        ),
-      ];
-
-  @override
-  Widget build(BuildContext context) {
-    final nombre = _estudiante?['nombre'] as String? ?? '...';
-    final puntos = _estudiante?['puntos'] as int? ?? 0;
-    final racha = _estudiante?['racha_actual'] as int? ?? 0;
-
-    return BubblesBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              expandedHeight: 140,
-              backgroundColor: AppColors.headerGradientEnd,
-              foregroundColor: Colors.white,
-              automaticallyImplyLeading: false,
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.exit_to_app, color: Colors.white70),
-                  onPressed: _handleLogout,
-                  tooltip: 'Salir',
-                ),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.headerGradientStart,
-                        AppColors.headerGradientEnd
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    border: Border(
-                      bottom: BorderSide(color: AppColors.verde, width: 3),
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 32),
-                          Row(
-                            children: [
-                              Text(
-                                '🎓',
-                                style: const TextStyle(fontSize: 28),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '¡Hola, $nombre! 👋',
-                                      style: GoogleFonts.baloo2(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      '¿Qué quieres aprender hoy?',
-                                      style: const TextStyle(
-                                        color: Colors.white60,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              _isLoading
-                                  ? const SizedBox.shrink()
-                                  : Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        _HeaderBadge('⭐ $puntos'),
-                                        const SizedBox(height: 4),
-                                        if (racha > 0)
-                                          _HeaderBadge('🔥 $racha días'),
-                                      ],
-                                    ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 0.82,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (ctx, i) => _FeatureTileWidget(tile: _features[i]),
-                  childCount: _features.length,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderBadge extends StatelessWidget {
-  final String text;
-  const _HeaderBadge(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(30),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withAlpha(60)),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-}
-
-class _FeatureTile {
-  final String emoji;
-  final String label;
-  final List<Color> colors;
-  final bool available;
-  final VoidCallback onTap;
-
-  const _FeatureTile({
-    required this.emoji,
-    required this.label,
-    required this.colors,
-    required this.available,
-    required this.onTap,
-  });
-}
-
-class _FeatureTileWidget extends StatefulWidget {
-  final _FeatureTile tile;
-
-  const _FeatureTileWidget({required this.tile});
-
-  @override
-  State<_FeatureTileWidget> createState() => _FeatureTileWidgetState();
-}
-
-class _FeatureTileWidgetState extends State<_FeatureTileWidget>
+class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _scaleController;
-  late Animation<double> _scaleAnim;
+  late AnimationController _animCtrl;
+  late Animation<double> _fade;
+  late Animation<Offset> _slide;
+
+  String get _nombre => widget.session['nombre'] as String? ?? 'Explorador';
+  int get _puntos => (widget.session['puntos'] as num?)?.toInt() ?? 0;
+  int get _racha => (widget.session['racha_actual'] as num?)?.toInt() ?? 0;
+  String get _avatar => widget.session['avatar'] as String? ?? 'panda';
+
+  static const _avatarEmojis = {
+    'conejo': '🐰', 'gato': '🐱', 'lechuza': '🦉', 'leon': '🦁',
+    'oso': '🐻', 'panda': '🐼', 'perico': '🦜', 'tigre': '🐯', 'zorro': '🦊',
+  };
 
   @override
   void initState() {
     super.initState();
-    _scaleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.93,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-    _scaleAnim = _scaleController;
+    _animCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
+    _fade = Tween<double>(begin: 0, end: 1)
+        .animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeIn));
+    _slide =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+            CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
+    _animCtrl.forward();
   }
 
   @override
   void dispose() {
-    _scaleController.dispose();
+    _animCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _onTapDown(TapDownDetails _) async {
-    await _scaleController.reverse();
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 12) return '¡Buenos días';
+    if (h < 18) return '¡Buenas tardes';
+    return '¡Buenas noches';
   }
-
-  Future<void> _onTapUp(TapUpDetails _) async {
-    await _scaleController.forward();
-    widget.tile.onTap();
-  }
-
-  void _onTapCancel() => _scaleController.forward();
 
   @override
   Widget build(BuildContext context) {
-    final tile = widget.tile;
-    return AnimatedBuilder(
-      animation: _scaleAnim,
-      builder: (ctx, child) => Transform.scale(
-        scale: _scaleAnim.value,
-        child: child,
-      ),
-      child: GestureDetector(
-        onTapDown: _onTapDown,
-        onTapUp: _onTapUp,
-        onTapCancel: _onTapCancel,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: tile.available
-                  ? tile.colors
-                  : [
-                      tile.colors[0].withAlpha(180),
-                      tile.colors[1].withAlpha(180),
-                    ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: tile.colors[0].withAlpha(tile.available ? 100 : 50),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              // Decorative circle
-              Positioned(
-                top: -12,
-                right: -12,
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: const BoxDecoration(
-                    color: Color(0x22FFFFFF),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-              // Content
-              Padding(
-                padding: const EdgeInsets.all(10),
+    final w = MediaQuery.of(context).size.width;
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.gradienteHome),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fade,
+            child: SlideTransition(
+              position: _slide,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                    horizontal: w > 700 ? 40 : 20, vertical: 20),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      tile.emoji,
-                      style: const TextStyle(fontSize: 36),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      tile.label,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.baloo2(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        height: 1.1,
-                        shadows: const [
-                          Shadow(blurRadius: 4, color: Colors.black38),
-                        ],
-                      ),
-                    ),
-                    if (!tile.available) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(51),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Text(
-                          'Pronto',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+                    _buildHeader(),
+                    const SizedBox(height: 24),
+                    _buildIllustration(),
+                    const SizedBox(height: 28),
+                    _buildWelcomeCard(),
+                    const SizedBox(height: 24),
+                    _buildStatsRow(),
+                    const SizedBox(height: 28),
+                    _buildQuickActions(),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          width: 52, height: 52,
+          decoration: const BoxDecoration(
+            gradient: AppColors.gradientePrimario,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              _avatarEmojis[_avatar] ?? '🐼',
+              style: const TextStyle(fontSize: 28),
+            ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${_greeting()}, $_nombre!',
+                  style: GoogleFonts.baloo2(
+                      fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.texto)),
+              Text('¿Listo para aprender hoy?',
+                  style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave)),
+            ],
+          ),
+        ),
+        if (_racha > 0)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [AppColors.amarillo, Color(0xFFFFE066)]),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Text('🔥', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 4),
+              Text('$_racha',
+                  style: GoogleFonts.baloo2(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF8B6914))),
+            ]),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildIllustration() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 30),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [AppColors.sombraSuave],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _floatingElement('📖', 'Leo', AppColors.rosa.withOpacity(0.15)),
+              _floatingElement('⭐', 'Aprendo', AppColors.amarillo.withOpacity(0.25)),
+              _floatingElement('🎮', 'Juego', AppColors.celeste.withOpacity(0.2)),
+              _floatingElement('🏆', 'Gano', AppColors.lila.withOpacity(0.2)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text('✨', style: const TextStyle(fontSize: 48)),
+          const SizedBox(height: 8),
+          Text('¡El mundo de los libros\nte espera!',
+              style: GoogleFonts.baloo2(
+                  fontSize: 22, fontWeight: FontWeight.w800,
+                  color: AppColors.texto, height: 1.2),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          Text('Lee, juega y gana puntos especiales',
+              style: GoogleFonts.nunito(fontSize: 15, color: AppColors.textoSuave),
+              textAlign: TextAlign.center),
+        ],
+      ),
+    );
+  }
+
+  Widget _floatingElement(String emoji, String label, Color bg) {
+    return Column(children: [
+      Container(
+        width: 56, height: 56,
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16)),
+        child: Center(child: Text(emoji, style: const TextStyle(fontSize: 28))),
+      ),
+      const SizedBox(height: 6),
+      Text(label, style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.texto)),
+    ]);
+  }
+
+  Widget _buildWelcomeCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.rosa, AppColors.lila],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [AppColors.sombraRosa],
+      ),
+      child: Column(
+        children: [
+          Text('¿Comenzamos la aventura?',
+              style: GoogleFonts.baloo2(
+                  fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.texto),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          Text('Cada libro que leas te hace más inteligente y feliz 🌟',
+              style: GoogleFonts.nunito(fontSize: 15, color: AppColors.texto.withOpacity(0.8)),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity, height: 52,
+            child: ElevatedButton(
+              onPressed: () => widget.onNavigate(1),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.rosaOscuro,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                elevation: 0,
+              ),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                const Text('📚', style: TextStyle(fontSize: 22)),
+                const SizedBox(width: 10),
+                Text('¡Empecemos!',
+                    style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w800,
+                        color: AppColors.rosaOscuro)),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow() {
+    return Row(children: [
+      Expanded(child: _statCard('⭐', _puntos.toString(), 'Puntos', AppColors.amarillo.withOpacity(0.3), AppColors.amarilloOscuro)),
+      const SizedBox(width: 12),
+      Expanded(child: _statCard('🔥', '$_racha', 'Días seguidos', AppColors.rosa.withOpacity(0.25), AppColors.rosaOscuro)),
+      const SizedBox(width: 12),
+      Expanded(child: _statCard('📖', '${(_puntos / 100).floor()}', 'Nivel', AppColors.lila.withOpacity(0.25), AppColors.lilaOscuro)),
+    ]);
+  }
+
+  Widget _statCard(String emoji, String value, String label, Color bg, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text(emoji, style: const TextStyle(fontSize: 24)),
+        const SizedBox(height: 4),
+        Text(value, style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w800, color: textColor)),
+        Text(label, style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textoSuave), textAlign: TextAlign.center),
+      ]),
+    );
+  }
+
+  Widget _buildQuickActions() {
+    final actions = [
+      {'emoji': '📚', 'label': 'Mis Lecturas', 'sub': 'Leer un cuento', 'idx': 1, 'color': AppColors.rosa},
+      {'emoji': '🎮', 'label': 'Minijuegos', 'sub': 'Jugar y aprender', 'idx': 4, 'color': AppColors.celeste},
+      {'emoji': '📊', 'label': 'Mi Progreso', 'sub': 'Ver mis logros', 'idx': 2, 'color': AppColors.lila},
+      {'emoji': '🛍️', 'label': 'Tienda', 'sub': 'Canjear puntos', 'idx': 3, 'color': AppColors.amarillo},
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Acceso Rápido',
+            style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+        const SizedBox(height: 12),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          childAspectRatio: 2.0,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          children: actions.map((a) {
+            final color = a['color'] as Color;
+            return GestureDetector(
+              onTap: () => widget.onNavigate(a['idx'] as int),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: color.withOpacity(0.5), width: 1.5),
+                ),
+                child: Row(children: [
+                  Text(a['emoji'] as String, style: const TextStyle(fontSize: 28)),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(a['label'] as String,
+                          style: GoogleFonts.baloo2(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.texto)),
+                      Text(a['sub'] as String,
+                          style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textoSuave)),
+                    ],
+                  )),
+                ]),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }

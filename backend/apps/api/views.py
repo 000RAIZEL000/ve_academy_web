@@ -34,8 +34,70 @@ def _decode_token(token: str) -> dict:
 # ──────────────────────────── Auth ───────────────────────────────────
 
 @api_view(['POST'])
+def register_estudiante(request):
+    """Registrar nuevo estudiante con nombre, edad, avatar, email y contraseña."""
+    nombre = request.data.get('nombre', '').strip()
+    edad_raw = request.data.get('edad', 5)
+    avatar = request.data.get('avatar', 'panda')
+    email = request.data.get('email', '').strip().lower()
+    password = request.data.get('password', '').strip()
+
+    try:
+        edad = int(edad_raw)
+    except (ValueError, TypeError):
+        edad = 0
+
+    if not nombre or edad not in [5, 6, 7]:
+        return Response({'error': 'Nombre y edad (5-7) son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+    if not email or '@' not in email:
+        return Response({'error': 'Correo electrónico inválido'}, status=status.HTTP_400_BAD_REQUEST)
+    if not password or len(password) < 6:
+        return Response({'error': 'La contraseña debe tener al menos 6 caracteres'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if Estudiante.objects.filter(email__iexact=email).exists():
+        return Response({'error': 'Este correo ya está registrado'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if Estudiante.objects.filter(nombre__iexact=nombre).exists():
+        return Response({'error': 'Este nombre de usuario ya existe'}, status=status.HTTP_400_BAD_REQUEST)
+
+    estudiante = Estudiante(nombre=nombre, edad=edad, avatar=avatar, email=email)
+    estudiante.set_password(password)
+    estudiante.save()
+
+    estudiante.actualizar_racha()
+    serializer = EstudianteDetailSerializer(estudiante)
+    data = dict(serializer.data)
+    data['token'] = _generate_token(estudiante.id)
+    return Response(data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+def login_email(request):
+    """Iniciar sesión con email y contraseña."""
+    email = request.data.get('email', '').strip().lower()
+    password = request.data.get('password', '').strip()
+
+    if not email or not password:
+        return Response({'error': 'Correo y contraseña son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        estudiante = Estudiante.objects.get(email__iexact=email)
+    except Estudiante.DoesNotExist:
+        return Response({'error': 'Correo o contraseña incorrectos'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if not estudiante.check_password(password):
+        return Response({'error': 'Correo o contraseña incorrectos'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    estudiante.actualizar_racha()
+    serializer = EstudianteDetailSerializer(estudiante)
+    data = dict(serializer.data)
+    data['token'] = _generate_token(estudiante.id)
+    return Response(data)
+
+
+@api_view(['POST'])
 def login_estudiante(request):
-    """Registrar o iniciar sesión desde Flutter. Devuelve datos + JWT."""
+    """Login legacy por nombre/edad/avatar (mantener compatibilidad)."""
     nombre = request.data.get('nombre', '').strip()
     edad = int(request.data.get('edad', 5))
     avatar = request.data.get('avatar', 'panda')
@@ -61,7 +123,7 @@ def login_estudiante(request):
 
 @api_view(['POST'])
 def verify_token(request):
-    """Verificar JWT almacenado en el dispositivo y devolver datos actualizados."""
+    """Verificar JWT y devolver datos actualizados."""
     token = request.data.get('token', '')
     if not token:
         return Response({'error': 'Token requerido'}, status=status.HTTP_400_BAD_REQUEST)
@@ -71,7 +133,7 @@ def verify_token(request):
         estudiante.actualizar_racha()
         serializer = EstudianteDetailSerializer(estudiante)
         data = dict(serializer.data)
-        data['token'] = token  # devolver el mismo token (aún vigente)
+        data['token'] = token
         return Response(data)
     except jwt.ExpiredSignatureError:
         return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -83,16 +145,50 @@ def verify_token(request):
 
 @api_view(['GET'])
 def estudiante_detalle(request, pk):
-    """Datos completos del estudiante, actualiza racha."""
     estudiante = get_object_or_404(Estudiante, pk=pk)
     estudiante.actualizar_racha()
     serializer = EstudianteDetailSerializer(estudiante)
     return Response(serializer.data)
 
 
+@api_view(['POST'])
+def actualizar_perfil(request, pk):
+    """Actualizar nombre, avatar del estudiante."""
+    estudiante = get_object_or_404(Estudiante, pk=pk)
+    nombre = request.data.get('nombre', '').strip()
+    avatar = request.data.get('avatar', '').strip()
+
+    if nombre and nombre != estudiante.nombre:
+        if Estudiante.objects.filter(nombre__iexact=nombre).exclude(pk=pk).exists():
+            return Response({'error': 'Ese nombre ya está en uso'}, status=status.HTTP_400_BAD_REQUEST)
+        estudiante.nombre = nombre
+    if avatar:
+        estudiante.avatar = avatar
+    estudiante.save()
+
+    serializer = EstudianteDetailSerializer(estudiante)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def cambiar_password(request, pk):
+    """Cambiar contraseña del estudiante."""
+    estudiante = get_object_or_404(Estudiante, pk=pk)
+    password_actual = request.data.get('password_actual', '')
+    password_nuevo = request.data.get('password_nuevo', '')
+
+    if estudiante.password_hash and not estudiante.check_password(password_actual):
+        return Response({'error': 'Contraseña actual incorrecta'}, status=status.HTTP_400_BAD_REQUEST)
+    if len(password_nuevo) < 6:
+        return Response({'error': 'La nueva contraseña debe tener al menos 6 caracteres'}, status=status.HTTP_400_BAD_REQUEST)
+
+    estudiante.set_password(password_nuevo)
+    estudiante.save()
+    return Response({'mensaje': 'Contraseña actualizada correctamente'})
+
+
 @api_view(['GET'])
 def ranking(request):
-    """Top-10 global o filtrado por edad."""
     edad = request.query_params.get('edad')
     qs = Estudiante.objects.order_by('-puntos')
     if edad:
@@ -117,7 +213,6 @@ def lista_tienda(request):
 
 @api_view(['POST'])
 def comprar_objeto(request):
-    """Canjear objeto de tienda con puntos del estudiante."""
     estudiante_id = request.data.get('estudiante_id')
     objeto_id = request.data.get('objeto_id')
 
@@ -134,22 +229,39 @@ def comprar_objeto(request):
     estudiante.save()
     CompraEstudiante.objects.create(estudiante=estudiante, objeto=objeto)
 
-    return Response({'mensaje': '¡Compra realizada con éxito!', 'puntos_restantes': estudiante.puntos})
+    return Response({'mensaje': '¡Compra realizada!', 'puntos_restantes': estudiante.puntos})
+
+
+@api_view(['POST'])
+def equipar_objeto(request):
+    """Equipar un objeto comprado."""
+    estudiante_id = request.data.get('estudiante_id')
+    compra_id = request.data.get('compra_id')
+
+    compra = get_object_or_404(CompraEstudiante, pk=compra_id, estudiante__id=estudiante_id)
+    CompraEstudiante.objects.filter(
+        estudiante=compra.estudiante, objeto__categoria=compra.objeto.categoria
+    ).update(equipado=False)
+    compra.equipado = True
+    compra.save()
+
+    return Response({'mensaje': '¡Objeto equipado!'})
 
 
 # ──────────────────────────── Libros ─────────────────────────────────
 
 @api_view(['GET'])
 def lista_libros(request):
-    """Lista todos los libros activos (sin preguntas para aligerar la respuesta)."""
     libros = Libro.objects.filter(activo=True)
+    edad = request.query_params.get('edad')
+    if edad:
+        libros = libros.filter(edad_min__lte=int(edad))
     serializer = LibroSerializer(libros, many=True)
     return Response(serializer.data)
 
 
 @api_view(['GET'])
 def libro_detalle(request, slug):
-    """Detalle de un libro incluyendo todas sus preguntas."""
     libro = get_object_or_404(Libro, slug=slug, activo=True)
     serializer = LibroDetailSerializer(libro)
     return Response(serializer.data)
@@ -159,10 +271,6 @@ def libro_detalle(request, slug):
 
 @api_view(['POST'])
 def guardar_resultado(request):
-    """
-    Guardar el resultado de un quiz.
-    Premia puntos, actualiza racha y desbloquea logros automáticamente.
-    """
     estudiante_id = request.data.get('estudiante_id')
     libro_id = request.data.get('libro_id')
     puntos = int(request.data.get('puntos', 0))
@@ -195,12 +303,21 @@ def guardar_resultado(request):
         'puntos_ganados': puntos_ganados,
         'puntos_totales': estudiante.puntos,
         'completado': completado,
+        'estrellas': _calcular_estrellas(puntos, total),
     })
+
+
+def _calcular_estrellas(puntos, total):
+    pct = puntos / total if total > 0 else 0
+    if pct >= 0.9:
+        return 3
+    if pct >= 0.6:
+        return 2
+    return 1
 
 
 @api_view(['GET'])
 def historial_estudiante(request, pk):
-    """Últimas 50 actividades del estudiante."""
     estudiante = get_object_or_404(Estudiante, pk=pk)
     sesiones = (
         SesionActividad.objects
@@ -224,7 +341,6 @@ def historial_estudiante(request, pk):
 
 
 def _verificar_logros(estudiante):
-    """Desbloquea automáticamente los logros que el estudiante ya merece."""
     logros = Logro.objects.filter(puntos_requeridos__lte=estudiante.puntos)
     for logro in logros:
         InsigniaEstudiante.objects.get_or_create(estudiante=estudiante, logro=logro)
@@ -232,7 +348,6 @@ def _verificar_logros(estudiante):
 
 @api_view(['GET'])
 def juegos_libro(request, slug):
-    """Datos de mini juegos para un libro (palabras y oraciones)."""
     libro = get_object_or_404(Libro, slug=slug, activo=True)
     try:
         juego = libro.juego
@@ -244,10 +359,6 @@ def juegos_libro(request, slug):
 
 @api_view(['GET'])
 def get_progreso(request, pk):
-    """
-    Devuelve el progreso del estudiante en cada libro activo.
-    Incluye: completado, mejor_puntaje, total_preguntas, porcentaje, intentos.
-    """
     estudiante = get_object_or_404(Estudiante, pk=pk)
     libros = Libro.objects.filter(activo=True)
     progreso = []
@@ -265,7 +376,9 @@ def get_progreso(request, pk):
 
         progreso.append({
             'libro_id': libro.id,
+            'libro_titulo': libro.titulo,
             'libro_slug': libro.slug,
+            'libro_portada_url': libro.portada_url,
             'completado': mejor.completado if mejor else False,
             'mejor_puntaje': mejor_puntaje,
             'total_preguntas': total_preguntas,

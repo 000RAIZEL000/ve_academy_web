@@ -1,335 +1,382 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
-import '../theme/app_colors.dart';
+
+const _avatarOpciones = [
+  {'key': 'conejo', 'emoji': '🐰'},
+  {'key': 'gato', 'emoji': '🐱'},
+  {'key': 'lechuza', 'emoji': '🦉'},
+  {'key': 'leon', 'emoji': '🦁'},
+  {'key': 'oso', 'emoji': '🐻'},
+  {'key': 'panda', 'emoji': '🐼'},
+  {'key': 'perico', 'emoji': '🦜'},
+  {'key': 'tigre', 'emoji': '🐯'},
+  {'key': 'zorro', 'emoji': '🦊'},
+];
 
 class ProfileScreen extends StatefulWidget {
-  final int estudianteId;
-
-  const ProfileScreen({super.key, required this.estudianteId});
+  final Map<String, dynamic> session;
+  final void Function(Map<String, dynamic>) onSessionUpdated;
+  const ProfileScreen({super.key, required this.session, required this.onSessionUpdated});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final ApiService _api = ApiService();
   Map<String, dynamic>? _estudiante;
-  bool _isLoading = true;
+  bool _loading = true;
+  bool _editando = false;
+  final _nombreCtrl = TextEditingController();
+  String _avatarSeleccionado = 'panda';
+
+  String get _nombre => widget.session['nombre'] as String? ?? '';
+  int get _puntos => (widget.session['puntos'] as num?)?.toInt() ?? 0;
+  int get _nivel => (_puntos / 100).floor() + 1;
+  String get _avatar => widget.session['avatar'] as String? ?? 'panda';
+  int get _racha => (widget.session['racha_actual'] as num?)?.toInt() ?? 0;
+
+  String _emojiAvatar(String key) {
+    return _avatarOpciones.firstWhere(
+        (a) => a['key'] == key, orElse: () => {'emoji': '🐼'})['emoji'] as String;
+  }
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _cargarEstudiante();
   }
 
-  Future<void> _load() async {
-    final token = await SessionService.getToken();
-    final data = await _api.getEstudiante(widget.estudianteId, token: token);
-    setState(() {
-      _estudiante = data;
-      _isLoading = false;
-    });
+  @override
+  void dispose() {
+    _nombreCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _cargarEstudiante() async {
+    try {
+      final id = (widget.session['id'] as num).toInt();
+      final token = widget.session['token'] as String?;
+      final data = await ApiService().getEstudiante(id, token: token);
+      setState(() {
+        _estudiante = data;
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() => _loading = false);
+    }
+  }
+
+  void _iniciarEdicion() {
+    _nombreCtrl.text = _nombre;
+    _avatarSeleccionado = _avatar;
+    setState(() => _editando = true);
+  }
+
+  Future<void> _guardarPerfil() async {
+    if (_nombreCtrl.text.trim().isEmpty) return;
+    try {
+      final id = (widget.session['id'] as num).toInt();
+      final token = widget.session['token'] as String?;
+      final data = await ApiService().actualizarPerfil(
+          id, _nombreCtrl.text.trim(), _avatarSeleccionado, token: token);
+      final nuevoSession = Map<String, dynamic>.from(widget.session)
+        ..['nombre'] = data['nombre']
+        ..['avatar'] = data['avatar'];
+      await SessionService.saveSession({...nuevoSession, 'token': token ?? ''});
+      widget.onSessionUpdated(nuevoSession);
+      setState(() => _editando = false);
+      _mostrarSnack('¡Perfil actualizado! 🎉');
+    } catch (e) {
+      _mostrarSnack(e.toString().replaceAll('Exception: ', ''), isError: true);
+    }
+  }
+
+  void _mostrarCambiarPassword() {
+    final actualCtrl = TextEditingController();
+    final nuevoCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('Cambiar Contraseña', style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.texto)),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(
+            controller: actualCtrl,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: 'Contraseña actual'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: nuevoCtrl,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: 'Nueva contraseña'),
+          ),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                final id = (widget.session['id'] as num).toInt();
+                final token = widget.session['token'] as String?;
+                await ApiService().cambiarPassword(id, actualCtrl.text, nuevoCtrl.text, token: token);
+                if (context.mounted) Navigator.pop(context);
+                _mostrarSnack('¡Contraseña actualizada! 🔒');
+              } catch (e) {
+                _mostrarSnack(e.toString().replaceAll('Exception: ', ''), isError: true);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.rosa, elevation: 0),
+            child: Text('Guardar', style: GoogleFonts.baloo2(fontSize: 15, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarSnack(String msg, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg, style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+      backgroundColor: isError ? AppColors.errorTexto : AppColors.exitoTexto,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      behavior: SnackBarBehavior.floating,
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.fondo,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.verde))
-          : CustomScrollView(
-              slivers: [
-                _buildHeader(),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        _buildStatsRow(),
-                        const SizedBox(height: 20),
-                        _buildStreakCard(),
-                        const SizedBox(height: 20),
-                        _buildAchievementsCard(),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  SliverAppBar _buildHeader() {
-    final nombre = _estudiante?['nombre'] as String? ?? '?';
-    final edad = _estudiante?['edad'] as int? ?? 0;
-    final avatar = _estudiante?['avatar'] as String? ?? 'panda';
-    final inicial = nombre.isNotEmpty ? nombre[0].toUpperCase() : '?';
-
-    return SliverAppBar(
-      expandedHeight: 220,
-      pinned: true,
-      backgroundColor: AppColors.headerGradientEnd,
-      foregroundColor: Colors.white,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF43C6AC), Color(0xFF1a6b5a)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                Stack(
-                  alignment: Alignment.center,
+      body: SafeArea(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 90,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(51),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                      ),
-                    ),
-                    Image.network(
-                      ApiService.resolveStaticUrl('/static/img/avatars/$avatar.png'),
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Text(
-                        inicial,
-                        style: const TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                    _buildHeader(),
+                    const SizedBox(height: 24),
+                    _buildProfileCard(),
+                    const SizedBox(height: 20),
+                    if (_editando) _buildEditForm() else _buildStats(),
+                    const SizedBox(height: 20),
+                    _buildLogros(),
+                    const SizedBox(height: 20),
+                    _buildAcciones(),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  nombre,
-                  style: GoogleFonts.baloo2(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  '$edad años',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
   }
 
-  Widget _buildStatsRow() {
-    final puntos = _estudiante?['puntos'] as int? ?? 0;
-    final racha = _estudiante?['racha_actual'] as int? ?? 0;
-    final insignias = (_estudiante?['insignias'] as List?)?.length ?? 0;
-
-    return Row(
-      children: [
-        _StatCard('⭐', '$puntos', 'Puntos', const Color(0xFFffd200), const Color(0xFFf7971e)),
-        const SizedBox(width: 12),
-        _StatCard('🔥', '$racha', 'Racha', const Color(0xFFff416c), const Color(0xFFff4b2b)),
-        const SizedBox(width: 12),
-        _StatCard('🏆', '$insignias', 'Logros', const Color(0xFFf6d365), const Color(0xFFfda085)),
-      ],
-    );
+  Widget _buildHeader() {
+    return Row(children: [
+      Text('Mi Perfil', style: GoogleFonts.baloo2(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.texto)),
+      const Spacer(),
+      if (!_editando)
+        TextButton.icon(
+          onPressed: _iniciarEdicion,
+          icon: const Icon(Icons.edit_rounded, size: 18),
+          label: Text('Editar', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+          style: TextButton.styleFrom(foregroundColor: AppColors.rosaOscuro),
+        ),
+    ]);
   }
 
-  Widget _buildStreakCard() {
-    final racha = _estudiante?['racha_actual'] as int? ?? 0;
-    final maxRacha = _estudiante?['max_racha'] as int? ?? 0;
-
+  Widget _buildProfileCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFFff416c), Color(0xFFff4b2b)],
+          colors: [AppColors.rosa, AppColors.lila],
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFff416c).withAlpha(77),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [AppColors.sombraRosa],
       ),
-      child: Row(
-        children: [
-          const Text('🔥', style: TextStyle(fontSize: 48)),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Racha actual: $racha ${racha == 1 ? 'día' : 'días'}',
-                  style: GoogleFonts.baloo2(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  'Récord: $maxRacha ${maxRacha == 1 ? 'día' : 'días'}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  racha >= maxRacha && racha > 0
-                      ? '¡Estás en tu mejor racha! 🌟'
-                      : racha > 0
-                          ? '¡Sigue así, no pierdas la racha!'
-                          : 'Lee hoy para comenzar una racha.',
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: Row(children: [
+        Container(
+          width: 80, height: 80,
+          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+          child: Center(child: Text(_emojiAvatar(_avatar), style: const TextStyle(fontSize: 44))),
+        ),
+        const SizedBox(width: 20),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(_nombre, style: GoogleFonts.baloo2(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.texto),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text('Nivel $_nivel • ${widget.session['edad']} años',
+              style: GoogleFonts.nunito(fontSize: 14, color: AppColors.texto.withOpacity(0.75))),
+          const SizedBox(height: 8),
+          Row(children: [
+            _badge('⭐ $_puntos pts', AppColors.amarillo.withOpacity(0.5)),
+            const SizedBox(width: 8),
+            _badge('🔥 $_racha días', AppColors.rosa.withOpacity(0.5)),
+          ]),
+        ])),
+      ]),
     );
   }
 
-  Widget _buildAchievementsCard() {
-    final insignias = (_estudiante?['insignias'] as List?) ?? [];
+  Widget _badge(String text, Color bg) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
+    child: Text(text, style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.texto)),
+  );
 
+  Widget _buildStats() {
+    final insignias = (_estudiante?['insignias'] as List<dynamic>? ?? []).length;
+    final compras = (_estudiante?['compras'] as List<dynamic>? ?? []).length;
+    return Row(children: [
+      Expanded(child: _statCard('🏆', '$insignias', 'Logros', AppColors.amarillo.withOpacity(0.25))),
+      const SizedBox(width: 12),
+      Expanded(child: _statCard('🛍️', '$compras', 'Compras', AppColors.lila.withOpacity(0.25))),
+      const SizedBox(width: 12),
+      Expanded(child: _statCard('📖', '${(_puntos / 10).floor()}', 'Libros', AppColors.celeste.withOpacity(0.25))),
+    ]);
+  }
+
+  Widget _statCard(String emoji, String val, String label, Color bg) => Container(
+    padding: const EdgeInsets.symmetric(vertical: 16),
+    decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(18)),
+    child: Column(mainAxisSize: MainAxisSize.min, children: [
+      Text(emoji, style: const TextStyle(fontSize: 26)),
+      const SizedBox(height: 4),
+      Text(val, style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.texto)),
+      Text(label, style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textoSuave)),
+    ]),
+  );
+
+  Widget _buildEditForm() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
-        ],
+        boxShadow: [AppColors.sombraSuave],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '🏆 Mis Logros',
-            style: GoogleFonts.baloo2(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.texto,
-            ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Editar Perfil', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _nombreCtrl,
+          decoration: const InputDecoration(
+            labelText: 'Nombre',
+            prefixIcon: Icon(Icons.person_rounded, color: AppColors.rosaOscuro),
           ),
-          const SizedBox(height: 12),
-          insignias.isEmpty
-              ? const Text(
-                  '¡Completa actividades para ganar logros! 📚',
-                  style: TextStyle(color: AppColors.gris),
-                )
-              : Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: insignias.map((ins) {
-                    final logro = ins['logro'] as Map<String, dynamic>;
-                    return _BadgeChip(
-                      icono: logro['icono'] as String? ?? '🏆',
-                      nombre: logro['nombre'] as String? ?? '',
-                    );
-                  }).toList(),
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: 16),
+        Text('Elige tu avatar:', style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.texto)),
+        const SizedBox(height: 10),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3, childAspectRatio: 1.0, crossAxisSpacing: 8, mainAxisSpacing: 8,
+          ),
+          itemCount: _avatarOpciones.length,
+          itemBuilder: (_, i) {
+            final av = _avatarOpciones[i];
+            final sel = _avatarSeleccionado == av['key'];
+            return GestureDetector(
+              onTap: () => setState(() => _avatarSeleccionado = av['key'] as String),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: sel ? AppColors.rosa.withOpacity(0.3) : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(14),
+                  border: sel ? Border.all(color: AppColors.rosaOscuro, width: 2) : null,
                 ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String emoji;
-  final String value;
-  final String label;
-  final Color color1;
-  final Color color2;
-
-  const _StatCard(this.emoji, this.value, this.label, this.color1, this.color2);
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [color1, color2]),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: color2.withAlpha(80),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 28)),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: GoogleFonts.baloo2(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
+                child: Center(child: Text(av['emoji'] as String, style: const TextStyle(fontSize: 36))),
               ),
-            ),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white70, fontSize: 11),
-            ),
-          ],
+            );
+          },
         ),
-      ),
+        const SizedBox(height: 16),
+        Row(children: [
+          Expanded(child: OutlinedButton(
+            onPressed: () => setState(() => _editando = false),
+            style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.lila, width: 2)),
+            child: Text('Cancelar', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppColors.lilaOscuro)),
+          )),
+          const SizedBox(width: 12),
+          Expanded(child: ElevatedButton(
+            onPressed: _guardarPerfil,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.rosa, elevation: 0),
+            child: Text('Guardar', style: GoogleFonts.baloo2(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.texto)),
+          )),
+        ]),
+      ]),
     );
   }
-}
 
-class _BadgeChip extends StatelessWidget {
-  final String icono;
-  final String nombre;
-
-  const _BadgeChip({required this.icono, required this.nombre});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.amarillo.withAlpha(40),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.amarillo, width: 1.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(icono, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 4),
-          Text(
-            nombre,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.naranjaOscuro,
+  Widget _buildLogros() {
+    final insignias = _estudiante?['insignias'] as List<dynamic>? ?? [];
+    if (insignias.isEmpty) return const SizedBox();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Mis Logros 🏆', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+      const SizedBox(height: 12),
+      GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3, childAspectRatio: 0.9, crossAxisSpacing: 10, mainAxisSpacing: 10,
+        ),
+        itemCount: insignias.length.clamp(0, 6),
+        itemBuilder: (_, i) {
+          final logro = (insignias[i]['logro'] as Map<String, dynamic>? ?? {});
+          return Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: AppColors.gradienteLogros,
+              borderRadius: BorderRadius.circular(16),
             ),
-          ),
-        ],
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text(logro['icono'] as String? ?? '🏆', style: const TextStyle(fontSize: 28)),
+              const SizedBox(height: 4),
+              Text(logro['nombre'] as String? ?? '',
+                  style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF8B6914)),
+                  textAlign: TextAlign.center, maxLines: 2),
+            ]),
+          );
+        },
+      ),
+    ]);
+  }
+
+  Widget _buildAcciones() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Opciones', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+      const SizedBox(height: 12),
+      _accionTile(Icons.lock_reset_rounded, 'Cambiar Contraseña', AppColors.celeste, _mostrarCambiarPassword),
+    ]);
+  }
+
+  Widget _accionTile(IconData icon, String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [AppColors.sombraSuave],
+        ),
+        child: Row(children: [
+          Container(width: 40, height: 40,
+            decoration: BoxDecoration(color: color.withOpacity(0.25), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 22)),
+          const SizedBox(width: 14),
+          Text(label, style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.texto)),
+          const Spacer(),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.textoSuave),
+        ]),
       ),
     );
   }

@@ -12,24 +12,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.headerGradientStart,
-            AppColors.headerGradientMid,
-            AppColors.headerGradientEnd,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border(
-          bottom: BorderSide(color: AppColors.verde, width: 4.0),
-        ),
+        gradient: AppColors.gradienteNavbar,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black38,
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
+          BoxShadow(color: Color(0x33DCC6FF), blurRadius: 10, offset: Offset(0, 4)),
         ],
       ),
       child: SafeArea(
@@ -37,70 +22,49 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             children: [
-              // Placeholder for Logo
               Container(
-                width: 40,
-                height: 40,
+                width: 40, height: 40,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.school, color: AppColors.azul),
+                child: const Center(child: Text('📚', style: TextStyle(fontSize: 22))),
               ),
               const SizedBox(width: 12),
-              // Brand Name
               Text(
                 'V&E Academy',
                 style: GoogleFonts.baloo2(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.rosaOscuro,
                 ),
               ),
               const Spacer(),
-              // User Chip
               if (estudiante != null)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(50),
-                    border: Border.all(color: Colors.white.withOpacity(0.25), width: 2),
+                    color: Colors.white.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Row(
-                    children: [
-                      // Avatar placeholder
-                      CircleAvatar(
-                        radius: 12,
-                        backgroundColor: AppColors.naranja,
-                        child: Text(
-                          estudiante!['nombre']?.substring(0, 1).toUpperCase() ?? '?',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
+                  child: Row(children: [
+                    Text(estudiante!['nombre']?.toString().substring(0, 1).toUpperCase() ?? '?',
+                        style: GoogleFonts.baloo2(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.rosaOscuro)),
+                    const SizedBox(width: 6),
+                    Text(estudiante!['nombre'] ?? '',
+                        style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.texto)),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.amarillo, borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        estudiante!['nombre'] ?? '',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.amarillo,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '⭐ ${estudiante!['puntos']}',
-                          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w900, fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
+                      child: Text('⭐ ${estudiante!['puntos']}',
+                          style: const TextStyle(color: Color(0xFF8B6914), fontWeight: FontWeight.w900, fontSize: 12)),
+                    ),
+                  ]),
                 ),
               if (onLogout != null)
                 IconButton(
-                  icon: const Icon(Icons.exit_to_app, color: Colors.white70),
+                  icon: const Icon(Icons.exit_to_app, color: AppColors.rosaOscuro),
                   onPressed: onLogout,
                 ),
             ],

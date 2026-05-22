@@ -1,304 +1,325 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/api_service.dart';
-import '../services/session_service.dart';
 import '../theme/app_colors.dart';
-import '../widgets/book_cover.dart';
+import '../services/api_service.dart';
 
 class ProgressScreen extends StatefulWidget {
-  final int estudianteId;
-  final int estudianteEdad;
-
-  const ProgressScreen({
-    super.key,
-    required this.estudianteId,
-    required this.estudianteEdad,
-  });
+  final Map<String, dynamic> session;
+  const ProgressScreen({super.key, required this.session});
 
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
 }
 
 class _ProgressScreenState extends State<ProgressScreen> {
-  final ApiService _api = ApiService();
   List<dynamic> _progreso = [];
-  List<dynamic> _libros = [];
-  bool _isLoading = true;
+  List<dynamic> _logros = [];
+  List<dynamic> _historial = [];
+  bool _loading = true;
+
+  int get _puntos => (widget.session['puntos'] as num?)?.toInt() ?? 0;
+  int get _racha => (widget.session['racha_actual'] as num?)?.toInt() ?? 0;
+  int get _nivel => (_puntos / 100).floor() + 1;
+  int get _puntosParaSiguiente => (_nivel * 100) - _puntos;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _cargarDatos();
   }
 
-  Future<void> _load() async {
-    final token = await SessionService.getToken();
-    final results = await Future.wait([
-      _api.getProgreso(widget.estudianteId, token: token),
-      _api.getLibros(token: token),
-    ]);
-    setState(() {
-      _progreso = results[0];
-      _libros = results[1];
-      _isLoading = false;
-    });
-  }
-
-  Map<String, dynamic>? _getLibro(String slug) {
+  Future<void> _cargarDatos() async {
+    final id = (widget.session['id'] as num).toInt();
+    final token = widget.session['token'] as String?;
+    final api = ApiService();
     try {
-      return _libros.firstWhere((l) => l['slug'] == slug) as Map<String, dynamic>;
+      final results = await Future.wait([
+        api.getProgreso(id, token: token),
+        api.getLogros(token: token),
+        api.getHistorial(id, token: token),
+      ]);
+      setState(() {
+        _progreso = results[0];
+        _logros = results[1];
+        _historial = results[2];
+        _loading = false;
+      });
     } catch (_) {
-      return null;
+      setState(() => _loading = false);
     }
   }
 
-  int get _completados => _progreso.where((p) => p['completado'] == true).length;
-  int get _enProceso => _progreso.where((p) {
-    final pct = p['porcentaje'] as int? ?? 0;
-    final done = p['completado'] as bool? ?? false;
-    return pct > 0 && !done;
-  }).length;
+  int get _lecturasCompletadas => _progreso.where((p) => p['completado'] == true).length;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.fondo,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 160,
-            pinned: true,
-            backgroundColor: AppColors.headerGradientEnd,
-            foregroundColor: Colors.white,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: const Center(
+      body: SafeArea(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
+            : RefreshIndicator(
+                onRefresh: _cargarDatos,
+                color: AppColors.rosaOscuro,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 48),
-                      Text('📊', style: TextStyle(fontSize: 52)),
-                      Text(
-                        'Mi Progreso',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold),
-                      ),
+                      _buildHeader(),
+                      const SizedBox(height: 20),
+                      _buildNivelCard(),
+                      const SizedBox(height: 20),
+                      _buildEstadisticas(),
+                      const SizedBox(height: 24),
+                      _buildLibrosProgreso(),
+                      const SizedBox(height: 24),
+                      _buildLogros(),
+                      const SizedBox(height: 24),
+                      _buildHistorial(),
                     ],
                   ),
                 ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(children: [
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Mi Progreso', style: GoogleFonts.baloo2(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.texto)),
+        Text('¡Mira cuánto has avanzado!', style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave)),
+      ]),
+      const Spacer(),
+      const Text('📊', style: TextStyle(fontSize: 32)),
+    ]);
+  }
+
+  Widget _buildNivelCard() {
+    final pctNivel = ((_puntos % 100) / 100.0).clamp(0.0, 1.0);
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [AppColors.rosa, AppColors.lila]),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [AppColors.sombraRosa],
+      ),
+      child: Column(children: [
+        Row(children: [
+          Container(
+            width: 60, height: 60,
+            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            child: Center(
+              child: Text('$_nivel', style: GoogleFonts.baloo2(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.rosaOscuro)),
             ),
           ),
-          if (!_isLoading)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    _SummaryChip('✅', '$_completados', 'Completados', AppColors.verde),
-                    const SizedBox(width: 12),
-                    _SummaryChip(
-                        '📖', '$_enProceso', 'En proceso', AppColors.azul),
-                    const SizedBox(width: 12),
-                    _SummaryChip(
-                        '🔒',
-                        '${_progreso.length - _completados - _enProceso}',
-                        'Sin comenzar',
-                        AppColors.gris),
-                  ],
-                ),
-              ),
-            ),
-          _isLoading
-              ? const SliverFillRemaining(
-                  child: Center(
-                      child: CircularProgressIndicator(color: AppColors.verde)),
-                )
-              : SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (ctx, i) {
-                      final p = _progreso[i];
-                      final slug = p['libro_slug'] as String;
-                      final libro = _getLibro(slug);
-                      return _ProgressCard(
-                        progreso: p,
-                        titulo: libro?['titulo'] as String? ?? slug,
-                        portadaUrl: libro?['portada_url'] as String? ?? '',
-                        colorIndex: i,
-                      );
-                    },
-                    childCount: _progreso.length,
-                  ),
-                ),
-        ],
-      ),
+          const SizedBox(width: 16),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Nivel $_nivel', style: GoogleFonts.baloo2(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.texto)),
+            Text('$_puntosParaSiguiente pts para el siguiente nivel',
+                style: GoogleFonts.nunito(fontSize: 13, color: AppColors.texto.withOpacity(0.7))),
+          ])),
+          const Text('🏅', style: TextStyle(fontSize: 36)),
+        ]),
+        const SizedBox(height: 16),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: pctNivel,
+            backgroundColor: Colors.white.withOpacity(0.4),
+            valueColor: const AlwaysStoppedAnimation(Colors.white),
+            minHeight: 10,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text('${_puntos % 100} pts', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.texto.withOpacity(0.8))),
+          Text('100 pts', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.texto.withOpacity(0.8))),
+        ]),
+      ]),
     );
+  }
+
+  Widget _buildEstadisticas() {
+    return Row(children: [
+      Expanded(child: _statCard('📚', '$_lecturasCompletadas', 'Lecturas\ncompletadas', AppColors.celeste.withOpacity(0.3))),
+      const SizedBox(width: 12),
+      Expanded(child: _statCard('⭐', '$_puntos', 'Puntos\nacumulados', AppColors.amarillo.withOpacity(0.3))),
+      const SizedBox(width: 12),
+      Expanded(child: _statCard('🔥', '$_racha', 'Días\nseguidos', AppColors.rosa.withOpacity(0.3))),
+    ]);
+  }
+
+  Widget _statCard(String emoji, String valor, String etiqueta, Color bg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(18)),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text(emoji, style: const TextStyle(fontSize: 26)),
+        const SizedBox(height: 6),
+        Text(valor, style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.texto)),
+        Text(etiqueta, style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textoSuave), textAlign: TextAlign.center),
+      ]),
+    );
+  }
+
+  Widget _buildLibrosProgreso() {
+    if (_progreso.isEmpty) return const SizedBox();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Lecturas', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+      const SizedBox(height: 12),
+      ..._progreso.take(5).map((p) => _LibroProgresoItem(progreso: p)),
+      if (_progreso.length > 5)
+        Center(child: Text('+${_progreso.length - 5} más',
+            style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textoSuave))),
+    ]);
+  }
+
+  Widget _buildLogros() {
+    if (_logros.isEmpty) return const SizedBox();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Logros', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+      const SizedBox(height: 12),
+      GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3, childAspectRatio: 0.9, crossAxisSpacing: 10, mainAxisSpacing: 10,
+        ),
+        itemCount: _logros.length.clamp(0, 6),
+        itemBuilder: (_, i) {
+          final logro = _logros[i] as Map<String, dynamic>;
+          final desbloqueado = _puntos >= ((logro['puntos_requeridos'] as num?)?.toInt() ?? 0);
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: desbloqueado ? AppColors.amarillo.withOpacity(0.3) : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(16),
+              border: desbloqueado ? Border.all(color: AppColors.amarilloOscuro, width: 1.5) : null,
+            ),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text(logro['icono'] as String? ?? '🏆',
+                  style: TextStyle(fontSize: 30, color: desbloqueado ? null : Colors.grey)),
+              const SizedBox(height: 6),
+              Text(logro['nombre'] as String? ?? '',
+                  style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700,
+                      color: desbloqueado ? AppColors.amarilloOscuro : Colors.grey),
+                  textAlign: TextAlign.center, maxLines: 2),
+            ]),
+          );
+        },
+      ),
+    ]);
+  }
+
+  Widget _buildHistorial() {
+    if (_historial.isEmpty) return const SizedBox();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Historial de actividades',
+          style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+      const SizedBox(height: 12),
+      ..._historial.take(8).map((h) => _HistorialItem(item: h)),
+    ]);
   }
 }
 
-class _SummaryChip extends StatelessWidget {
-  final String emoji;
-  final String count;
-  final String label;
-  final Color color;
-
-  const _SummaryChip(this.emoji, this.count, this.label, this.color);
+class _LibroProgresoItem extends StatelessWidget {
+  final Map<String, dynamic> progreso;
+  const _LibroProgresoItem({required this.progreso});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withAlpha(30),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withAlpha(80)),
-        ),
-        child: Column(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 22)),
-            Text(
-              count,
-              style: GoogleFonts.baloo2(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: color,
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ProgressCard extends StatelessWidget {
-  final dynamic progreso;
-  final String titulo;
-  final String portadaUrl;
-  final int colorIndex;
-
-  const _ProgressCard({
-    required this.progreso,
-    required this.titulo,
-    required this.portadaUrl,
-    required this.colorIndex,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final pct = progreso['porcentaje'] as int? ?? 0;
+    final titulo = progreso['libro_titulo'] as String? ?? '';
+    final pct = (progreso['porcentaje'] as num?)?.toInt() ?? 0;
     final completado = progreso['completado'] as bool? ?? false;
-    final intentos = progreso['intentos'] as int? ?? 0;
-    final mejor = progreso['mejor_puntaje'] as int? ?? 0;
-    final total = progreso['total_preguntas'] as int? ?? 0;
+    final intentos = (progreso['intentos'] as num?)?.toInt() ?? 0;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 3)),
-        ],
-        border: completado ? Border.all(color: AppColors.verde, width: 2) : null,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [AppColors.sombraSuave],
       ),
-      child: Row(
-        children: [
-          // Cover thumbnail
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(18),
-              bottomLeft: Radius.circular(18),
-            ),
-            child: SizedBox(
-              width: 90,
-              height: 100,
-              child: BookCoverWidget(
-                portadaUrl: portadaUrl,
-                titulo: titulo,
-                index: colorIndex,
+      child: Row(children: [
+        Container(
+          width: 44, height: 44,
+          decoration: BoxDecoration(
+            color: completado ? AppColors.exito.withOpacity(0.3) : AppColors.celeste.withOpacity(0.3),
+            shape: BoxShape.circle,
+          ),
+          child: Center(child: Text(completado ? '✅' : '📖', style: const TextStyle(fontSize: 22))),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(titulo, style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.texto),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 4),
+          Row(children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: pct / 100.0,
+                  backgroundColor: AppColors.lila.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation(completado ? AppColors.exitoTexto : AppColors.lilaOscuro),
+                  minHeight: 6,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          titulo,
-                          style: GoogleFonts.baloo2(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppColors.texto,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (completado)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 4),
-                          child: Text('✅', style: TextStyle(fontSize: 18)),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      value: pct / 100,
-                      minHeight: 8,
-                      backgroundColor: Colors.grey[200],
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        completado ? AppColors.verde : AppColors.azul,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '$pct%',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: completado ? AppColors.verde : AppColors.azul,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (intentos > 0)
-                        Text(
-                          '$mejor/$total · $intentos ${intentos == 1 ? 'intento' : 'intentos'}',
-                          style: const TextStyle(fontSize: 11, color: AppColors.gris),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Text('$pct%', style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700,
+                color: completado ? AppColors.exitoTexto : AppColors.lilaOscuro)),
+          ]),
+        ])),
+        const SizedBox(width: 8),
+        Text('$intentos\nveces', style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textoSuave), textAlign: TextAlign.center),
+      ]),
+    );
+  }
+}
+
+class _HistorialItem extends StatelessWidget {
+  final Map<String, dynamic> item;
+  const _HistorialItem({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final titulo = item['libro_titulo'] as String? ?? '';
+    final puntos = (item['puntos_obtenidos'] as num?)?.toInt() ?? 0;
+    final completado = item['completado'] as bool? ?? false;
+    final fecha = item['fecha'] as String? ?? '';
+    final fechaStr = fecha.isNotEmpty ? fecha.substring(0, 10) : '';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [AppColors.sombraSuave],
       ),
+      child: Row(children: [
+        Text(completado ? '✅' : '📖', style: const TextStyle(fontSize: 20)),
+        const SizedBox(width: 10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(titulo, style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.texto),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(fechaStr, style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textoSuave)),
+        ])),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.amarillo.withOpacity(0.4),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text('+$puntos pts',
+              style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.amarilloOscuro)),
+        ),
+      ]),
     );
   }
 }

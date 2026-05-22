@@ -12,13 +12,11 @@ class ApiService {
         if (host == 'localhost' || host == '127.0.0.1') {
           return 'http://localhost:8000/api';
         }
-        // En producción (Railway): mismo host que la web
         return '${base.scheme}://$host/api';
       } catch (_) {
         return 'http://localhost:8000/api';
       }
     }
-    // Android emulator
     return 'http://10.0.2.2:8000/api';
   }
 
@@ -46,104 +44,156 @@ class ApiService {
     return h;
   }
 
-  // ── Auth ────────────────────────────────────────────────────────────
+  // ── Auth ──────────────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> register({
+    required String nombre,
+    required int edad,
+    required String avatar,
+    required String email,
+    required String password,
+  }) async {
+    final r = await http.post(
+      Uri.parse('$baseUrl/register/'),
+      headers: _headers(),
+      body: json.encode({
+        'nombre': nombre, 'edad': edad, 'avatar': avatar,
+        'email': email, 'password': password,
+      }),
+    );
+    final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+    if (r.statusCode == 200 || r.statusCode == 201) return body;
+    throw Exception(body['error'] ?? 'Error al registrar');
+  }
+
+  Future<Map<String, dynamic>> loginEmail(String email, String password) async {
+    final r = await http.post(
+      Uri.parse('$baseUrl/login-email/'),
+      headers: _headers(),
+      body: json.encode({'email': email, 'password': password}),
+    );
+    final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+    if (r.statusCode == 200) return body;
+    throw Exception(body['error'] ?? 'Correo o contraseña incorrectos');
+  }
 
   Future<Map<String, dynamic>> login(String nombre, int edad, String avatar) async {
-    final response = await http.post(
+    final r = await http.post(
       Uri.parse('$baseUrl/login/'),
       headers: _headers(),
       body: json.encode({'nombre': nombre, 'edad': edad, 'avatar': avatar}),
     );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return json.decode(utf8.decode(response.bodyBytes));
+    if (r.statusCode == 200 || r.statusCode == 201) {
+      return json.decode(utf8.decode(r.bodyBytes));
     }
     throw Exception('Error al iniciar sesión');
   }
 
   Future<Map<String, dynamic>> verifyToken(String token) async {
-    final response = await http.post(
+    final r = await http.post(
       Uri.parse('$baseUrl/verify-token/'),
       headers: _headers(),
       body: json.encode({'token': token}),
     );
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes));
-    }
+    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     throw Exception('Token inválido o expirado');
   }
 
-  // ── Estudiantes ─────────────────────────────────────────────────────
+  // ── Estudiantes ───────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getEstudiante(int id, {String? token}) async {
-    final response = await http.get(
+    final r = await http.get(
       Uri.parse('$baseUrl/estudiante/$id/'),
       headers: _headers(token: token),
     );
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes));
-    }
+    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     throw Exception('Error al cargar estudiante');
+  }
+
+  Future<Map<String, dynamic>> actualizarPerfil(
+      int id, String nombre, String avatar, {String? token}) async {
+    final r = await http.post(
+      Uri.parse('$baseUrl/estudiante/$id/actualizar/'),
+      headers: _headers(token: token),
+      body: json.encode({'nombre': nombre, 'avatar': avatar}),
+    );
+    final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+    if (r.statusCode == 200) return body;
+    throw Exception(body['error'] ?? 'Error al actualizar perfil');
+  }
+
+  Future<void> cambiarPassword(
+      int id, String actual, String nuevo, {String? token}) async {
+    final r = await http.post(
+      Uri.parse('$baseUrl/estudiante/$id/password/'),
+      headers: _headers(token: token),
+      body: json.encode({'password_actual': actual, 'password_nuevo': nuevo}),
+    );
+    final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+    if (r.statusCode != 200) throw Exception(body['error'] ?? 'Error al cambiar contraseña');
   }
 
   Future<List<dynamic>> getRanking({int? edad, String? token}) async {
     var url = '$baseUrl/ranking/';
     if (edad != null) url += '?edad=$edad';
-    final response = await http.get(Uri.parse(url), headers: _headers(token: token));
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes));
-    }
+    final r = await http.get(Uri.parse(url), headers: _headers(token: token));
+    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     return [];
   }
 
-  // ── Logros y Tienda ─────────────────────────────────────────────────
+  // ── Logros y Tienda ───────────────────────────────────────────────────────
 
   Future<List<dynamic>> getLogros({String? token}) async {
-    final response = await http.get(Uri.parse('$baseUrl/logros/'), headers: _headers(token: token));
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes));
-    }
+    final r = await http.get(Uri.parse('$baseUrl/logros/'), headers: _headers(token: token));
+    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     return [];
   }
 
   Future<List<dynamic>> getObjetosTienda({String? token}) async {
-    final response = await http.get(Uri.parse('$baseUrl/tienda/'), headers: _headers(token: token));
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes));
-    }
+    final r = await http.get(Uri.parse('$baseUrl/tienda/'), headers: _headers(token: token));
+    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     return [];
   }
 
   Future<Map<String, dynamic>> comprarObjeto(int estudianteId, int objetoId, {String? token}) async {
-    final response = await http.post(
+    final r = await http.post(
       Uri.parse('$baseUrl/comprar/'),
       headers: _headers(token: token),
       body: json.encode({'estudiante_id': estudianteId, 'objeto_id': objetoId}),
     );
-    return json.decode(utf8.decode(response.bodyBytes));
+    final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+    if (r.statusCode == 200) return body;
+    throw Exception(body['error'] ?? 'Error al comprar');
   }
 
-  // ── Libros ──────────────────────────────────────────────────────────
+  Future<void> equiparObjeto(int estudianteId, int compraId, {String? token}) async {
+    await http.post(
+      Uri.parse('$baseUrl/equipar/'),
+      headers: _headers(token: token),
+      body: json.encode({'estudiante_id': estudianteId, 'compra_id': compraId}),
+    );
+  }
 
-  Future<List<dynamic>> getLibros({String? token}) async {
-    final response = await http.get(Uri.parse('$baseUrl/libros/'), headers: _headers(token: token));
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes));
-    }
+  // ── Libros ────────────────────────────────────────────────────────────────
+
+  Future<List<dynamic>> getLibros({String? token, int? edad}) async {
+    var url = '$baseUrl/libros/';
+    if (edad != null) url += '?edad=$edad';
+    final r = await http.get(Uri.parse(url), headers: _headers(token: token));
+    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     return [];
   }
 
   Future<Map<String, dynamic>> getLibroDetalle(String slug, {String? token}) async {
-    final response = await http.get(
+    final r = await http.get(
       Uri.parse('$baseUrl/libros/$slug/'),
       headers: _headers(token: token),
     );
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes));
-    }
+    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     throw Exception('Error al cargar libro');
   }
 
-  // ── Actividades ─────────────────────────────────────────────────────
+  // ── Actividades ───────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> guardarResultado({
     required int estudianteId,
@@ -152,53 +202,46 @@ class ApiService {
     required int total,
     String? token,
   }) async {
-    final response = await http.post(
+    final r = await http.post(
       Uri.parse('$baseUrl/guardar/'),
       headers: _headers(token: token),
       body: json.encode({
-        'estudiante_id': estudianteId,
-        'libro_id': libroId,
-        'puntos': puntos,
-        'total': total,
+        'estudiante_id': estudianteId, 'libro_id': libroId,
+        'puntos': puntos, 'total': total,
       }),
     );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return json.decode(utf8.decode(response.bodyBytes));
+    if (r.statusCode == 200 || r.statusCode == 201) {
+      return json.decode(utf8.decode(r.bodyBytes));
     }
     throw Exception('Error al guardar resultado');
   }
 
   Future<List<dynamic>> getProgreso(int estudianteId, {String? token}) async {
-    final response = await http.get(
+    final r = await http.get(
       Uri.parse('$baseUrl/progreso/$estudianteId/'),
       headers: _headers(token: token),
     );
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes));
-    }
+    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     return [];
   }
 
   Future<BookGameData> getJuegos(String slug, {String? token}) async {
-    final response = await http.get(
+    final r = await http.get(
       Uri.parse('$baseUrl/juegos/$slug/'),
       headers: _headers(token: token),
     );
-    if (response.statusCode == 200) {
-      final data = json.decode(utf8.decode(response.bodyBytes));
-      return BookGameData.fromJson(data as Map<String, dynamic>);
+    if (r.statusCode == 200) {
+      return BookGameData.fromJson(json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>);
     }
     throw Exception('Error al cargar juegos');
   }
 
   Future<List<dynamic>> getHistorial(int estudianteId, {String? token}) async {
-    final response = await http.get(
+    final r = await http.get(
       Uri.parse('$baseUrl/historial/$estudianteId/'),
       headers: _headers(token: token),
     );
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes));
-    }
+    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     return [];
   }
 }
