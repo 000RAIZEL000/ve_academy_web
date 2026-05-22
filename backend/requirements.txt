@@ -1,0 +1,13 @@
+Django==4.2.16
+# MySQL para desarrollo local (XAMPP)
+mysqlclient==2.2.4
+# PostgreSQL para producción (Railway) - no borrar
+psycopg2-binary==2.9.9
+gunicorn==21.2.0
+whitenoise==6.7.0
+dj-database-url==2.2.0
+python-dotenv==1.0.1
+Pillow==10.4.0
+djangorestframework==3.15.2
+django-cors-headers==4.4.0
+PyJWT==2.9.0

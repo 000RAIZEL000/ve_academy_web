@@ -1,11 +1,91 @@
+# ==================== PYTHON / DJANGO ====================
 __pycache__/
 *.pyc
 *.pyo
-.env
-db.sqlite3
-staticfiles/
-media/
-*.log
-.DS_Store
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.tox/
+
+# Entorno virtual
 venv/
 env/
+.venv/
+ENV/
+backend/venv/
+
+# Variables de entorno (secretos)
+.env
+backend/.env
+
+# Base de datos SQLite local
+db.sqlite3
+*.sqlite3
+backend/db.sqlite3
+
+# Archivos estáticos generados
+staticfiles/
+backend/staticfiles/
+media/
+backend/media/
+
+# Logs
+*.log
+logs/
+
+# ==================== FLUTTER / DART ====================
+# Dart tool
+.dart_tool/
+frontend/.dart_tool/
+
+# Flutter build
+build/
+frontend/build/
+
+# Flutter plugins generados
+.flutter-plugins
+.flutter-plugins-dependencies
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+
+# Dart packages
+.packages
+.pub-cache/
+.pub/
+frontend/.packages
+
+# iOS generados
+frontend/ios/Pods/
+frontend/ios/.symlinks/
+frontend/ios/Flutter/Flutter.framework
+frontend/ios/Flutter/Flutter.podspec
+frontend/ios/Runner/GeneratedPluginRegistrant.*
+
+# Android generados
+frontend/android/.gradle/
+frontend/android/captures/
+frontend/android/gradlew
+frontend/android/gradlew.bat
+frontend/android/local.properties
+frontend/android/key.properties
+frontend/android/**/GeneratedPluginRegistrant.java
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# ==================== SISTEMA OPERATIVO ====================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ==================== CLAUDE CODE ====================
+.claude/
