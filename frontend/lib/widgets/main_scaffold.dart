@@ -7,7 +7,7 @@ import '../screens/progress_screen.dart';
 import '../screens/shop_screen.dart';
 import '../screens/games_menu_screen.dart';
 import '../screens/profile_screen.dart';
-import '../screens/settings_screen.dart';
+import '../screens/ranking_screen.dart';
 
 class MainScaffold extends StatefulWidget {
   final Map<String, dynamic> session;
@@ -38,7 +38,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     _NavItem(icon: Icons.store_rounded, label: 'Tienda'),
     _NavItem(icon: Icons.sports_esports_rounded, label: 'Juegos'),
     _NavItem(icon: Icons.person_rounded, label: 'Perfil'),
-    _NavItem(icon: Icons.settings_rounded, label: 'Config'),
+    _NavItem(icon: Icons.leaderboard_rounded, label: 'Ranking'),
   ];
 
   List<Widget> _buildScreens() => [
@@ -48,7 +48,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     ShopScreen(session: _session, onSessionUpdated: _updateSession),
     GamesMenuScreen(session: _session),
     ProfileScreen(session: _session, onSessionUpdated: _updateSession),
-    SettingsScreen(session: _session),
+    RankingScreen(session: _session),
   ];
 
   @override

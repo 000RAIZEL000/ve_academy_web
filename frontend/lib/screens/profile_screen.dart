@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
+import 'settings_screen.dart';
 
 const _avatarOpciones = [
   {'key': 'conejo', 'emoji': '🐰'},
@@ -185,6 +186,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           label: Text('Editar', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
           style: TextButton.styleFrom(foregroundColor: AppColors.rosaOscuro),
         ),
+      IconButton(
+        icon: const Icon(Icons.settings_rounded, color: AppColors.textoSuave),
+        tooltip: 'Configuración',
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SettingsScreen(session: widget.session)),
+        ),
+      ),
     ]);
   }
 
