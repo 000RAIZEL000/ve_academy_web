@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
+import '../widgets/book_cover.dart';
 import 'activities_screen.dart';
 
 class BookDetailScreen extends StatefulWidget {
@@ -151,21 +152,16 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Portada solo en primera página
-                if (_paginaActual == 0 && portadaUrl.isNotEmpty) ...[
+                if (_paginaActual == 0) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: Image.network(
-                      portadaUrl,
+                    child: SizedBox(
                       width: double.infinity,
                       height: 200,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: AppColors.rosa.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Center(child: Text('📖', style: TextStyle(fontSize: 64))),
+                      child: BookCoverWidget(
+                        portadaUrl: portadaUrl,
+                        titulo: widget.libro['titulo'] as String? ?? '',
+                        index: 0,
                       ),
                     ),
                   ),

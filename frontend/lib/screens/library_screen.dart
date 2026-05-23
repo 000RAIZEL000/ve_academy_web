@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
+import '../widgets/book_cover.dart';
 import 'book_detail_screen.dart';
 
 class LibraryScreen extends StatefulWidget {
@@ -261,10 +262,11 @@ class _BookCard extends StatelessWidget {
               flex: 3,
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                child: portadaUrl.isNotEmpty
-                    ? Image.network(portadaUrl, fit: BoxFit.cover, width: double.infinity,
-                        errorBuilder: (_, __, ___) => _coverFallback(bgColor))
-                    : _coverFallback(bgColor),
+                child: BookCoverWidget(
+                  portadaUrl: portadaUrl,
+                  titulo: libro['titulo'] as String? ?? '',
+                  index: colorIndex,
+                ),
               ),
             ),
             // Info
@@ -305,10 +307,4 @@ class _BookCard extends StatelessWidget {
     );
   }
 
-  Widget _coverFallback(Color bg) {
-    return Container(
-      color: bg,
-      child: const Center(child: Text('📖', style: TextStyle(fontSize: 52))),
-    );
-  }
 }

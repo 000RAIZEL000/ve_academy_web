@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_colors.dart';
 
 class CelebrationOverlay extends StatefulWidget {
   final String message;
@@ -27,22 +28,24 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
 
   final List<_Confetti> _confetti = [];
 
+  static const _confettiColors = [
+    AppColors.rosa,
+    AppColors.lila,
+    AppColors.celeste,
+    AppColors.amarillo,
+    AppColors.rosaOscuro,
+    AppColors.lilaOscuro,
+  ];
+
   @override
   void initState() {
     super.initState();
     final rng = Random();
-    for (int i = 0; i < 24; i++) {
+    for (int i = 0; i < 28; i++) {
       _confetti.add(_Confetti(
         x: rng.nextDouble(),
         y: rng.nextDouble(),
-        color: [
-          const Color(0xFFFFD700),
-          const Color(0xFFFF6B9D),
-          const Color(0xFF4FC3F7),
-          const Color(0xFF81C784),
-          const Color(0xFFFFB74D),
-          const Color(0xFFCE93D8),
-        ][rng.nextInt(6)],
+        color: _confettiColors[rng.nextInt(_confettiColors.length)],
         size: 8.0 + rng.nextDouble() * 10,
         rotation: rng.nextDouble() * 2 * pi,
       ));
@@ -103,9 +106,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
           opacity: _opacity.value.clamp(0.0, 1.0),
           child: Stack(
             children: [
-              // Dark overlay
-              Container(color: Colors.black.withAlpha(160)),
-              // Confetti
+              Container(color: AppColors.lila.withAlpha(180)),
               ..._confetti.map((c) => Positioned(
                     left: MediaQuery.of(ctx).size.width * c.x,
                     top: MediaQuery.of(ctx).size.height * c.y +
@@ -116,13 +117,12 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                         width: c.size,
                         height: c.size,
                         decoration: BoxDecoration(
-                          color: c.color.withAlpha(200),
+                          color: c.color.withAlpha(220),
                           borderRadius: BorderRadius.circular(c.size * 0.2),
                         ),
                       ),
                     ),
                   )),
-              // Card
               Center(
                 child: Transform.scale(
                   scale: _scale.value.clamp(0.0, 2.0),
@@ -130,33 +130,21 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                     margin: const EdgeInsets.symmetric(horizontal: 40),
                     padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6C3DE0), Color(0xFFE040A0)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      gradient: AppColors.gradientePrimario,
                       borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF6C3DE0).withAlpha(120),
-                          blurRadius: 30,
-                          spreadRadius: 5,
-                        ),
-                      ],
+                      boxShadow: [AppColors.sombraRosa],
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Stars
                         AnimatedBuilder(
                           animation: _starCtrl,
                           builder: (ctx, _) => Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: List.generate(widget.stars, (i) {
                               final delay = i * 0.15;
-                              final pulse = sin(
-                                      (_starCtrl.value + delay) * pi)
-                                  .abs();
+                              final pulse =
+                                  sin((_starCtrl.value + delay) * pi).abs();
                               return Transform.scale(
                                 scale: 1.0 + 0.2 * pulse,
                                 child: const Text(
@@ -181,7 +169,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                           widget.message,
                           style: GoogleFonts.nunito(
                             fontSize: 16,
-                            color: Colors.white.withAlpha(220),
+                            color: Colors.white.withAlpha(230),
                             fontWeight: FontWeight.w600,
                           ),
                           textAlign: TextAlign.center,

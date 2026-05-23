@@ -61,7 +61,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         body: Row(
           children: [
             _buildRail(),
-            const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFEDE8FF)),
+            const VerticalDivider(width: 1, thickness: 1, color: AppColors.lila),
             Expanded(child: IndexedStack(index: _currentIndex, children: _buildScreens())),
           ],
         ),
