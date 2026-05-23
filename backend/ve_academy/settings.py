@@ -17,6 +17,7 @@ ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()] or ['*']
 JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', SECRET_KEY)
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
