@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
+import '../widgets/app_logo.dart';
 import '../screens/home_screen.dart';
 import '../screens/library_screen.dart';
 import '../screens/progress_screen.dart';
@@ -84,12 +85,19 @@ class _MainScaffoldState extends State<MainScaffold> {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            Container(
-              width: 48, height: 48,
-              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: const Center(child: Text('📚', style: TextStyle(fontSize: 24))),
+            const AppLogo(size: 48, withShadow: true),
+            const SizedBox(height: 6),
+            Text(
+              'V&E Academy',
+              style: GoogleFonts.baloo2(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             ...List.generate(_navItems.length, (i) {
               final sel = _currentIndex == i;
               return Padding(

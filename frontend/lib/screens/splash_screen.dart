@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/session_service.dart';
 import '../services/api_service.dart';
+import '../widgets/app_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -160,27 +161,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildLogo() {
-    return Container(
-      width: 140,
-      height: 140,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.rosa.withOpacity(0.5),
-            blurRadius: 30,
-            spreadRadius: 8,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          '📚',
-          style: const TextStyle(fontSize: 72),
-        ),
-      ),
-    );
+    return const AppLogo(size: 160, withShadow: true);
   }
 
   List<Widget> _buildDecorativeCircles() {

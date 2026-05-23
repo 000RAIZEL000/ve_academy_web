@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
+import '../widgets/app_logo.dart';
 
 class RegisterStep2Screen extends StatefulWidget {
   final Map<String, dynamic> step1Data;
@@ -98,10 +99,13 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
                         onPressed: () => Navigator.pop(context),
                       ),
                       const SizedBox(width: 8),
-                      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('Paso 2 de 2', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textoSuave)),
-                        Text('Tu Cuenta', style: GoogleFonts.baloo2(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.texto)),
-                      ]),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('Paso 2 de 2', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textoSuave)),
+                          Text('Tu Cuenta', style: GoogleFonts.baloo2(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.texto)),
+                        ]),
+                      ),
+                      const AppLogo(size: 48, withShadow: false),
                     ]),
                     const SizedBox(height: 8),
                     ClipRRect(

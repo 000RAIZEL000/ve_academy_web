@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
+import '../widgets/app_logo.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -93,14 +94,7 @@ class _LoginScreenState extends State<LoginScreen>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Container(
-                              width: 90, height: 90,
-                              decoration: const BoxDecoration(
-                                gradient: AppColors.gradientePrimario,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Center(child: Text('📚', style: TextStyle(fontSize: 46))),
-                            ),
+                            const AppLogo(size: 100, withShadow: true),
                             const SizedBox(height: 20),
                             Text('¡Bienvenido de vuelta!',
                                 style: GoogleFonts.baloo2(

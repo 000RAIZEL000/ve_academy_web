@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
+import '../widgets/app_logo.dart';
 
 const _avatars = [
   {'key': 'conejo', 'emoji': '🐰', 'name': 'Conejo'},
@@ -87,6 +88,7 @@ class _RegisterStep1ScreenState extends State<RegisterStep1Screen>
                           Text('Tu Perfil', style: GoogleFonts.baloo2(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.texto)),
                         ]),
                       ),
+                      const AppLogo(size: 48, withShadow: false),
                     ]),
                     const SizedBox(height: 8),
                     // Barra de progreso
