@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
+const _logoPath = 'assets/images/logo_vye_academy.webp';
+
 class AppLogo extends StatelessWidget {
   final double size;
   final bool withShadow;
@@ -13,25 +15,26 @@ class AppLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white,
         shape: BoxShape.circle,
         boxShadow: withShadow
             ? [
                 BoxShadow(
-                  color: AppColors.rosa.withOpacity(0.45),
-                  blurRadius: size * 0.22,
-                  spreadRadius: size * 0.06,
+                  color: AppColors.rosa.withOpacity(0.5),
+                  blurRadius: size * 0.25,
+                  spreadRadius: size * 0.05,
                 ),
               ]
             : null,
       ),
-      child: Padding(
-        padding: EdgeInsets.all(size * 0.1),
+      child: ClipOval(
         child: Image.asset(
-          'assets/images/logo_vye_academy.png',
-          fit: BoxFit.contain,
-          errorBuilder: (ctx, err, st) => Center(
-            child: Text('📚', style: TextStyle(fontSize: size * 0.48)),
+          _logoPath,
+          fit: BoxFit.cover,
+          errorBuilder: (ctx, err, st) => Container(
+            color: Colors.white,
+            child: Center(
+              child: Text('📚', style: TextStyle(fontSize: size * 0.48)),
+            ),
           ),
         ),
       ),
@@ -46,13 +49,15 @@ class AppLogoSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/images/logo_vye_academy.png',
-      width: logoSize,
-      height: logoSize,
-      fit: BoxFit.contain,
-      errorBuilder: (ctx, err, st) =>
-          Text('📚', style: TextStyle(fontSize: logoSize * 0.65)),
+    return ClipOval(
+      child: Image.asset(
+        _logoPath,
+        width: logoSize,
+        height: logoSize,
+        fit: BoxFit.cover,
+        errorBuilder: (ctx, err, st) =>
+            Text('📚', style: TextStyle(fontSize: logoSize * 0.65)),
+      ),
     );
   }
 }
