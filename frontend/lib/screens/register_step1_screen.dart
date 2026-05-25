@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_logo.dart';
+import '../services/api_service.dart';
 
 const _avatars = [
   {'key': 'conejo', 'emoji': '🐰', 'name': 'Conejo'},
@@ -204,8 +205,16 @@ class _RegisterStep1ScreenState extends State<RegisterStep1Screen>
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(av['emoji'] as String, style: const TextStyle(fontSize: 38)),
-                                      const SizedBox(height: 4),
+                                      ClipOval(
+                                        child: Image.network(
+                                          ApiService.resolveStaticUrl('/static/img/avatars/${av['key']}.png'),
+                                          width: 50, height: 50,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) =>
+                                              Text(av['emoji'] as String, style: const TextStyle(fontSize: 38)),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
                                       Text(av['name'] as String,
                                           style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700,
                                               color: sel ? AppColors.rosaOscuro : AppColors.texto)),

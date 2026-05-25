@@ -1,3 +1,9 @@
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 've_academy.settings')
+django.setup()
+
 from apps.usuarios.models import Logro, ObjetoTienda
 
 # Crear Logros
@@ -20,30 +26,44 @@ Logro.objects.get_or_create(
     puntos_requeridos=500
 )
 
-# Crear Objetos de la Tienda
-ObjetoTienda.objects.get_or_create(
-    nombre="Panda Guerrero",
-    categoria="avatar",
-    precio=200,
-    imagen="/static/img/avatars/panda_warrior.png"
-)
-ObjetoTienda.objects.get_or_create(
-    nombre="Gato Espacial",
-    categoria="avatar",
-    precio=250,
-    imagen="/static/img/avatars/space_cat.png"
-)
-ObjetoTienda.objects.get_or_create(
-    nombre="Bosque Encantado",
-    categoria="fondo",
-    precio=400,
-    imagen="/static/img/backgrounds/enchanted_forest.png"
-)
-ObjetoTienda.objects.get_or_create(
-    nombre="Capa de Héroe",
-    categoria="accesorio",
-    precio=150,
-    imagen="/static/img/accessories/hero_cape.png"
-)
+# Avatares nuevos
+for name, key, price in [
+    ("Dragón Dorado", "dragon_gold", 800),
+    ("Unicornio Rosa", "unicorn_pink", 450),
+    ("Robot Ninja", "robot_ninja", 600),
+    ("Tiburón Rey", "shark_king", 700),
+    ("Hada de Luz", "fairy_light", 500),
+    ("Astronauta", "astronaut", 900),
+]:
+    ObjetoTienda.objects.get_or_create(
+        nombre=name, categoria="avatar", precio=price, 
+        imagen=f"/static/shop/avatars/{key}.png", emoji="🎭"
+    )
+
+# Fondos nuevos
+for name, key, price in [
+    ("Ciudad Galáctica", "galaxy_city", 400),
+    ("Selva Encantada", "magic_jungle", 300),
+    ("Castillo de Nubes", "cloud_castle", 350),
+    ("Fondo de Cristales", "crystals", 250),
+    ("Desierto de Oro", "gold_desert", 450),
+]:
+    ObjetoTienda.objects.get_or_create(
+        nombre=name, categoria="fondo", precio=price, 
+        imagen=f"/static/shop/fondos/{key}.png", emoji="🌅"
+    )
+
+# Accesorios nuevos
+for name, key, price in [
+    ("Escudo Diamante", "shield_diamond", 1200),
+    ("Capa de Hielo", "cape_ice", 500),
+    ("Espada de Juguete", "sword_toy", 300),
+    ("Varita Mágica", "wand", 400),
+    ("Auriculares Pro", "headphones", 600),
+]:
+    ObjetoTienda.objects.get_or_create(
+        nombre=name, categoria="accesorio", precio=price, 
+        imagen=f"/static/shop/accesorios/{key}.png", emoji="🎀"
+    )
 
 print("¡Datos de prueba creados con éxito!")

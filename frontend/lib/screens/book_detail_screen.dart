@@ -8,8 +8,14 @@ import 'activities_screen.dart';
 class BookDetailScreen extends StatefulWidget {
   final Map<String, dynamic> libro;
   final Map<String, dynamic> session;
+  final void Function(Map<String, dynamic>)? onSessionUpdated;
 
-  const BookDetailScreen({super.key, required this.libro, required this.session});
+  const BookDetailScreen({
+    super.key,
+    required this.libro,
+    required this.session,
+    this.onSessionUpdated,
+  });
 
   @override
   State<BookDetailScreen> createState() => _BookDetailScreenState();
@@ -75,6 +81,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         builder: (_) => ActivitiesScreen(
           libroDetalle: _detalle!,
           session: widget.session,
+          onSessionUpdated: widget.onSessionUpdated,
         ),
       ),
     );

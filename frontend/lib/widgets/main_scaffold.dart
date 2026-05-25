@@ -9,6 +9,7 @@ import '../screens/shop_screen.dart';
 import '../screens/games_menu_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/ranking_screen.dart';
+import '../services/session_service.dart';
 
 class MainScaffold extends StatefulWidget {
   final Map<String, dynamic> session;
@@ -43,11 +44,11 @@ class _MainScaffoldState extends State<MainScaffold> {
   ];
 
   List<Widget> _buildScreens() => [
-    HomeScreen(session: _session, onNavigate: (i) => setState(() => _currentIndex = i)),
-    LibraryScreen(session: _session),
+    HomeScreen(session: _session, onNavigate: (i) => setState(() => _currentIndex = i), onSessionUpdated: _updateSession),
+    LibraryScreen(session: _session, onSessionUpdated: _updateSession),
     ProgressScreen(session: _session),
     ShopScreen(session: _session, onSessionUpdated: _updateSession),
-    GamesMenuScreen(session: _session),
+    GamesMenuScreen(session: _session, onSessionUpdated: _updateSession),
     ProfileScreen(session: _session, onSessionUpdated: _updateSession),
     RankingScreen(session: _session),
   ];
@@ -131,6 +132,34 @@ class _MainScaffoldState extends State<MainScaffold> {
                 ),
               );
             }),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.logout_rounded, color: Colors.white70),
+              tooltip: 'Cerrar Sesión',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    title: Text('¿Cerrar Sesión?', style: GoogleFonts.baloo2(fontWeight: FontWeight.w800)),
+                    content: const Text('¿Estás seguro de que quieres salir?'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('No, volver')),
+                      ElevatedButton(
+                        onPressed: () async {
+                          await SessionService.clearSession();
+                          if (!mounted) return;
+                          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.rosaOscuro),
+                        child: const Text('Sí, salir'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

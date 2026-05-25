@@ -244,4 +244,15 @@ class ApiService {
     if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     return [];
   }
+
+  Future<void> completarActividad(String slug, String tipo, {String? token}) async {
+    final r = await http.post(
+      Uri.parse('$baseUrl/completar-actividad/'),
+      headers: _headers(token: token),
+      body: json.encode({'slug': slug, 'tipo': tipo}),
+    );
+    if (r.statusCode != 200) {
+      throw Exception('Error al completar actividad');
+    }
+  }
 }

@@ -77,15 +77,18 @@ class _MemoryScreenState extends State<MemoryScreen> {
           _pares++;
           _completado = _pares == _cards.length ~/ 2;
         });
+        if (_completado) _notificarExito();
         _firstFlipped = null;
       } else {
         _blocking = true;
+        final index1 = _firstFlipped!;
+        final index2 = idx;
         _firstFlipped = null;
         Future.delayed(const Duration(milliseconds: 900), () {
           if (!mounted) return;
           setState(() {
-            _cards[_firstFlipped ?? idx] = first.copyWith(revealed: false);
-            _cards[idx] = card.copyWith(revealed: false);
+            _cards[index1] = _cards[index1].copyWith(revealed: false);
+            _cards[index2] = _cards[index2].copyWith(revealed: false);
             _blocking = false;
           });
         });
@@ -95,6 +98,13 @@ class _MemoryScreenState extends State<MemoryScreen> {
 
   void _reiniciar() {
     if (_gameData != null) setState(() => _iniciarJuego(_gameData!));
+  }
+
+  Future<void> _notificarExito() async {
+    try {
+      final token = widget.session['token'] as String?;
+      await ApiService().completarActividad(widget.slug, 'juego_memoria', token: token);
+    } catch (_) {}
   }
 
   @override
@@ -119,13 +129,18 @@ class _MemoryScreenState extends State<MemoryScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
-          : Column(
-              children: [
-                _buildStats(),
-                Expanded(
-                  child: _completado ? _buildCompletado() : _buildGrid(),
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: Column(
+                  children: [
+                    _buildStats(),
+                    Expanded(
+                      child: _completado ? _buildCompletado() : _buildGrid(),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
     );
   }
@@ -150,12 +165,15 @@ class _MemoryScreenState extends State<MemoryScreen> {
   Widget _buildGrid() {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.9,
-        ),
-        itemCount: _cards.length,
-        itemBuilder: (_, i) {
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          int crossAxisCount = constraints.maxWidth > 500 ? 4 : 3;
+          return GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.9,
+            ),
+            itemCount: _cards.length,
+            itemBuilder: (_, i) {
           final card = _cards[i];
           return GestureDetector(
             onTap: () => _voltear(i),
@@ -186,9 +204,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
                     : const Text('❓', style: TextStyle(fontSize: 36)),
               ),
             ),
-          );
-        },
-      ),
+            );
+          },
+        );
+      }),
     );
   }
 

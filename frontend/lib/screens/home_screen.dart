@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
+import '../services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> session;
   final void Function(int index) onNavigate;
-  const HomeScreen({super.key, required this.session, required this.onNavigate});
+  final void Function(Map<String, dynamic> session)? onSessionUpdated;
+  const HomeScreen({super.key, required this.session, required this.onNavigate, this.onSessionUpdated});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -38,6 +40,26 @@ class _HomeScreenState extends State<HomeScreen>
         Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
             CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
     _animCtrl.forward();
+    _refreshProfile();
+  }
+
+  Future<void> _refreshProfile() async {
+    try {
+      final token = widget.session['token'] as String?;
+      if (token == null) return;
+      final data = await ApiService().verifyToken(token);
+      if (widget.onSessionUpdated != null) {
+        widget.onSessionUpdated!(data);
+      }
+    } catch (_) {}
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session['puntos'] != widget.session['puntos']) {
+      setState(() {}); // Forzar reconstrucción con nuevos datos del getter _puntos
+    }
   }
 
   @override
@@ -64,23 +86,28 @@ class _HomeScreenState extends State<HomeScreen>
             opacity: _fade,
             child: SlideTransition(
               position: _slide,
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                    horizontal: w > 700 ? 40 : 20, vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 24),
-                    _buildIllustration(),
-                    const SizedBox(height: 28),
-                    _buildWelcomeCard(),
-                    const SizedBox(height: 24),
-                    _buildStatsRow(),
-                    const SizedBox(height: 28),
-                    _buildQuickActions(),
-                    const SizedBox(height: 20),
-                  ],
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: w > 700 ? 40 : 20, vertical: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 24),
+                        _buildIllustration(),
+                        const SizedBox(height: 28),
+                        _buildWelcomeCard(),
+                        const SizedBox(height: 24),
+                        _buildStatsRow(),
+                        const SizedBox(height: 28),
+                        _buildQuickActions(),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -100,9 +127,16 @@ class _HomeScreenState extends State<HomeScreen>
             shape: BoxShape.circle,
           ),
           child: Center(
-            child: Text(
-              _avatarEmojis[_avatar] ?? '🐼',
-              style: const TextStyle(fontSize: 28),
+            child: ClipOval(
+              child: Image.network(
+                ApiService.resolveStaticUrl(widget.session['avatar_url'] as String?),
+                width: 52, height: 52,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Text(
+                  _avatarEmojis[_avatar] ?? '🐼',
+                  style: const TextStyle(fontSize: 28),
+                ),
+              ),
             ),
           ),
         ),
@@ -240,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen>
       const SizedBox(width: 12),
       Expanded(child: _statCard('🔥', '$_racha', 'Días seguidos', AppColors.rosa.withOpacity(0.25), AppColors.rosaOscuro)),
       const SizedBox(width: 12),
-      Expanded(child: _statCard('📖', '${(_puntos / 100).floor()}', 'Nivel', AppColors.lila.withOpacity(0.25), AppColors.lilaOscuro)),
+      Expanded(child: _statCard('📖', '${1 + (_puntos / 300).floor()}', 'Nivel', AppColors.lila.withOpacity(0.25), AppColors.lilaOscuro)),
     ]);
   }
 

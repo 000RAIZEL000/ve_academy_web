@@ -144,6 +144,11 @@ JUEGOS_DATA = {
             "El ratón ayudó al león",
             "El ratón rompió la red",
         ],
+        "adivinanzas": [
+            {"pregunta": "Soy grande y fuerte con una gran melena, si ruge la selva, todos se frenan. ¿Quién soy?", "respuesta": "LEON", "opciones": ["TIGRE", "LEON", "OSO"]},
+            {"pregunta": "Soy pequeñito y tengo bigotes, ayudo al león rompiendo los barrotes. ¿Quién soy?", "respuesta": "RATON", "opciones": ["CONEJO", "RATON", "GATO"]},
+            {"pregunta": "Con mis dientes rompo la red, para que el león no tenga sed. ¿Qué soy?", "respuesta": "RATON", "opciones": ["RATON", "ARDILLA", "PERICO"]},
+        ]
     },
     "liebre_tortuga": {
         "palabras": [
@@ -157,6 +162,10 @@ JUEGOS_DATA = {
             "La tortuga ganó la carrera",
             "La liebre se quedó dormida",
         ],
+        "adivinanzas": [
+            {"pregunta": "Camino muy lento y llevo mi casa, si quieres ganarme, mira qué me pasa. ¿Quién soy?", "respuesta": "TORTUGA", "opciones": ["CARACOL", "TORTUGA", "GUSANO"]},
+            {"pregunta": "Corro muy rápido y soy orejona, pero me dormí por ser fanfarrona. ¿Quién soy?", "respuesta": "LIEBRE", "opciones": ["CONEJO", "LIEBRE", "CANGURO"]},
+        ]
     },
     "zorro_uvas": {
         "palabras": [
@@ -170,6 +179,10 @@ JUEGOS_DATA = {
             "El zorro quería comer las uvas",
             "Las uvas estaban muy altas",
         ],
+        "adivinanzas": [
+            {"pregunta": "Soy muy astuto y tengo cola larga, busco la fruta que en la parra cuelga cargada. ¿Quién soy?", "respuesta": "ZORRO", "opciones": ["LOBO", "ZORRO", "PERRO"]},
+            {"pregunta": "Somos redondas, dulces y violetas, pero para el zorro estábamos 'verdes' y quietas. ¿Qué somos?", "respuesta": "UVAS", "opciones": ["MANZANAS", "UVAS", "CEREZAS"]},
+        ]
     },
     "hormiga_valiente": {
         "palabras": [
@@ -183,6 +196,9 @@ JUEGOS_DATA = {
             "Lina salvó al hormiguero",
             "El río creció con la lluvia",
         ],
+        "adivinanzas": [
+            {"pregunta": "Soy pequeñita y trabajo un montón, hice un puente con una ramita en la inundación. ¿Quién soy?", "respuesta": "HORMIGA", "opciones": ["ABEJA", "HORMIGA", "ARAÑA"]},
+        ]
     },
     "pajaro_volar": {
         "palabras": [
@@ -196,6 +212,9 @@ JUEGOS_DATA = {
             "Pipo aprendió a volar",
             "La tormenta sacudió el nido",
         ],
+        "adivinanzas": [
+            {"pregunta": "Tengo plumas y pico, y aunque tenía miedo, volé por el cielo rico. ¿Quién soy?", "respuesta": "PAJARO", "opciones": ["MARIPOSA", "PAJARO", "AVION"]},
+        ]
     },
     "arbol_magico": {
         "palabras": [
@@ -209,6 +228,9 @@ JUEGOS_DATA = {
             "El conejo se sentía solo",
             "El árbol le dio una manzana",
         ],
+        "adivinanzas": [
+            {"pregunta": "Tengo hojas de colores y frutos dorados, ayudo a los animales que están solitarios. ¿Qué soy?", "respuesta": "ARBOL", "opciones": ["FLOR", "ARBOL", "ARBÚSTO"]},
+        ]
     },
     "sol_luna": {
         "palabras": [
@@ -222,6 +244,10 @@ JUEGOS_DATA = {
             "El Sol y la Luna eran amigos",
             "La Luna dibujó un corazón",
         ],
+        "adivinanzas": [
+            {"pregunta": "Salgo de día y caliento la piel, le dejé un mensaje a mi amiga fiel. ¿Quién soy?", "respuesta": "SOL", "opciones": ["FUEGO", "SOL", "FOCO"]},
+            {"pregunta": "Salgo de noche y dibujo con estrellas, un corazón para mi amigo de luces bellas. ¿Quién soy?", "respuesta": "LUNA", "opciones": ["LUNA", "ESTRELLA", "COMETA"]},
+        ]
     },
     "ballena_amiga": {
         "palabras": [
@@ -235,6 +261,9 @@ JUEGOS_DATA = {
             "Azul rompió la red con su cola",
             "Los peces se hicieron amigos",
         ],
+        "adivinanzas": [
+            {"pregunta": "Soy la más grande de todo el océano, salvé a mis amigos de un destino temprano. ¿Quién soy?", "respuesta": "BALLENA", "opciones": ["TIBURÓN", "BALLENA", "DELFÍN"]},
+        ]
     },
 }
 
@@ -279,6 +308,7 @@ class Command(BaseCommand):
                     defaults={
                         'palabras': juego_data['palabras'],
                         'oraciones': juego_data['oraciones'],
+                        'adivinanzas': juego_data.get('adivinanzas', []),
                     }
                 )
                 self.stdout.write(f"    Juego configurado para: {libro.titulo}")

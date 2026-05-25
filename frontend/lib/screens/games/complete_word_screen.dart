@@ -78,7 +78,15 @@ class _CompleteWordScreenState extends State<CompleteWordScreen> {
       setState(() { _actual++; _generarOpciones(); });
     } else {
       setState(() => _completado = true);
+      _notificarExito();
     }
+  }
+
+  Future<void> _notificarExito() async {
+    try {
+      final token = widget.session['token'] as String?;
+      await ApiService().completarActividad(widget.slug, 'juego_completar', token: token);
+    } catch (_) {}
   }
 
   void _reiniciar() {
@@ -115,7 +123,16 @@ class _CompleteWordScreenState extends State<CompleteWordScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
-          : _palabras.isEmpty ? _buildVacio() : _completado ? _buildCompletado() : _buildJuego(),
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: _palabras.isEmpty
+                    ? _buildVacio()
+                    : _completado
+                        ? _buildCompletado()
+                        : _buildJuego(),
+              ),
+            ),
     );
   }
 

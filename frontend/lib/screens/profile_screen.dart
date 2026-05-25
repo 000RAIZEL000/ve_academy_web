@@ -35,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String get _nombre => widget.session['nombre'] as String? ?? '';
   int get _puntos => (widget.session['puntos'] as num?)?.toInt() ?? 0;
-  int get _nivel => (_puntos / 100).floor() + 1;
+  int get _nivel => (_puntos / 300).floor() + 1;
   String get _avatar => widget.session['avatar'] as String? ?? 'panda';
   int get _racha => (widget.session['racha_actual'] as num?)?.toInt() ?? 0;
 
@@ -154,21 +154,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 24),
-                    _buildProfileCard(),
-                    const SizedBox(height: 20),
-                    if (_editando) _buildEditForm() else _buildStats(),
-                    const SizedBox(height: 20),
-                    _buildLogros(),
-                    const SizedBox(height: 20),
-                    _buildAcciones(),
-                  ],
+            : Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 24),
+                        _buildProfileCard(),
+                        const SizedBox(height: 20),
+                        if (_editando) _buildEditForm() else _buildStats(),
+                        const SizedBox(height: 20),
+                        _buildLogros(),
+                        const SizedBox(height: 20),
+                        _buildAcciones(),
+                      ],
+                    ),
+                  ),
                 ),
               ),
       ),
@@ -212,7 +217,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Container(
           width: 80, height: 80,
           decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-          child: Center(child: Text(_emojiAvatar(_avatar), style: const TextStyle(fontSize: 44))),
+          child: Center(
+            child: ClipOval(
+              child: Image.network(
+                ApiService.resolveStaticUrl(widget.session['avatar_url'] as String?),
+                width: 80, height: 80,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Text(_emojiAvatar(_avatar), style: const TextStyle(fontSize: 44)),
+              ),
+            ),
+          ),
         ),
         const SizedBox(width: 20),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

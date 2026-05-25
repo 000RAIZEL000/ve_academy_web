@@ -124,31 +124,36 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
     return Scaffold(
       backgroundColor: AppColors.fondo,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildTabBar(),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
-                  : _itemsFiltrados.isEmpty
-                      ? _buildEmpty()
-                      : GridView.builder(
-                          padding: const EdgeInsets.all(16),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2, childAspectRatio: 0.78,
-                            crossAxisSpacing: 12, mainAxisSpacing: 12,
-                          ),
-                          itemCount: _itemsFiltrados.length,
-                          itemBuilder: (_, i) => _ShopItemCard(
-                            item: _itemsFiltrados[i] as Map<String, dynamic>,
-                            comprado: _comprados.contains((_itemsFiltrados[i]['id'] as num).toInt()),
-                            puedePagar: _puntos >= ((_itemsFiltrados[i]['precio'] as num).toInt()),
-                            onComprar: () => _comprar(_itemsFiltrados[i] as Map<String, dynamic>),
-                          ),
-                        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: Column(
+              children: [
+                _buildHeader(),
+                _buildTabBar(),
+                Expanded(
+                  child: _loading
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
+                      : _itemsFiltrados.isEmpty
+                          ? _buildEmpty()
+                          : GridView.builder(
+                              padding: const EdgeInsets.all(16),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2, childAspectRatio: 0.78,
+                                crossAxisSpacing: 12, mainAxisSpacing: 12,
+                              ),
+                              itemCount: _itemsFiltrados.length,
+                              itemBuilder: (_, i) => _ShopItemCard(
+                                item: _itemsFiltrados[i] as Map<String, dynamic>,
+                                comprado: _comprados.contains((_itemsFiltrados[i]['id'] as num).toInt()),
+                                puedePagar: _puntos >= ((_itemsFiltrados[i]['precio'] as num).toInt()),
+                                onComprar: () => _comprar(_itemsFiltrados[i] as Map<String, dynamic>),
+                              ),
+                            ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -241,7 +246,20 @@ class _ShopItemCard extends StatelessWidget {
                 color: comprado ? AppColors.exito.withOpacity(0.2) : AppColors.lila.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Center(child: Text(emoji, style: const TextStyle(fontSize: 52))),
+              child: Center(
+                child: item['imagen_url'] != null && (item['imagen_url'] as String).isNotEmpty
+                    ? Image.network(
+                        ApiService.resolveStaticUrl(item['imagen_url'] as String),
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Text(emoji, style: const TextStyle(fontSize: 52));
+                        },
+                        errorBuilder: (context, error, stackTrace) =>
+                            Text(emoji, style: const TextStyle(fontSize: 52)),
+                      )
+                    : Text(emoji, style: const TextStyle(fontSize: 52)),
+              ),
             ),
           ),
           Padding(

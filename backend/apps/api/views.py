@@ -387,3 +387,47 @@ def get_progreso(request, pk):
         })
 
     return Response(progreso)
+
+
+@api_view(['POST'])
+def completar_actividad(request):
+    """Marcar una actividad (juego) como completada y sumar puntos."""
+    tipo = request.data.get('tipo', 'juego')
+    
+    # Obtener token del header
+    auth_header = request.headers.get('Authorization', '')
+    token = None
+    if auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+    
+    if not token:
+        # Fallback para desarrollo: permitir estudiante_id directo
+        estudiante_id = request.data.get('estudiante_id')
+    else:
+        try:
+            payload = _decode_token(token)
+            estudiante_id = payload['sub']
+        except Exception:
+            return Response({'error': 'Token inválido o expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if not estudiante_id:
+        return Response({'error': 'Estudiante no identificado'}, status=status.HTTP_400_BAD_REQUEST)
+
+    estudiante = get_object_or_404(Estudiante, pk=estudiante_id)
+    
+    # Diferentes puntos según dificultad
+    puntos_ganados = 10
+    if tipo in ['juego_sopa', 'juego_ordenar', 'juego_adivinanzas']:
+        puntos_ganados = 15
+        
+    estudiante.puntos += puntos_ganados
+    estudiante.save()
+    estudiante.actualizar_racha()
+    
+    _verificar_logros(estudiante)
+
+    return Response({
+        'mensaje': f'¡Juego {tipo} completado!', 
+        'puntos_ganados': puntos_ganados,
+        'puntos_totales': estudiante.puntos
+    })

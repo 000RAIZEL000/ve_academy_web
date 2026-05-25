@@ -19,8 +19,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   int get _puntos => (widget.session['puntos'] as num?)?.toInt() ?? 0;
   int get _racha => (widget.session['racha_actual'] as num?)?.toInt() ?? 0;
-  int get _nivel => (_puntos / 100).floor() + 1;
-  int get _puntosParaSiguiente => (_nivel * 100) - _puntos;
+  int get _nivel => (_puntos / 300).floor() + 1;
+  int get _puntosParaSiguiente => (_nivel * 300) - _puntos;
 
   @override
   void initState() {
@@ -98,7 +98,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildNivelCard() {
-    final pctNivel = ((_puntos % 100) / 100.0).clamp(0.0, 1.0);
+    final puntosEnNivelBase = (_nivel - 1) * 300;
+    final puntosEnNivelActual = _puntos - puntosEnNivelBase;
+    final pctNivel = (puntosEnNivelActual / 300.0).clamp(0.0, 1.0);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -135,8 +137,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
         ),
         const SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('${_puntos % 100} pts', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.texto.withOpacity(0.8))),
-          Text('100 pts', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.texto.withOpacity(0.8))),
+          Text('$puntosEnNivelActual pts', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.texto.withOpacity(0.8))),
+          Text('300 pts', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.texto.withOpacity(0.8))),
         ]),
       ]),
     );

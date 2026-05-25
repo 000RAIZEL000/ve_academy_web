@@ -87,7 +87,15 @@ class _OrderSentenceScreenState extends State<OrderSentenceScreen> {
       setState(() { _actual++; _cargarOracion(); });
     } else {
       setState(() => _completado = true);
+      _notificarExito();
     }
+  }
+
+  Future<void> _notificarExito() async {
+    try {
+      final token = widget.session['token'] as String?;
+      await ApiService().completarActividad(widget.slug, 'juego_ordenar', token: token);
+    } catch (_) {}
   }
 
   void _reiniciar() {
@@ -124,7 +132,16 @@ class _OrderSentenceScreenState extends State<OrderSentenceScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
-          : _oraciones.isEmpty ? _buildVacio() : _completado ? _buildCompletado() : _buildJuego(),
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: _oraciones.isEmpty
+                    ? _buildVacio()
+                    : _completado
+                        ? _buildCompletado()
+                        : _buildJuego(),
+              ),
+            ),
     );
   }
 

@@ -71,7 +71,15 @@ class _FindImageScreenState extends State<FindImageScreen> {
       setState(() { _actual++; _generarOpciones(); });
     } else {
       setState(() => _completado = true);
+      _notificarExito();
     }
+  }
+
+  Future<void> _notificarExito() async {
+    try {
+      final token = widget.session['token'] as String?;
+      await ApiService().completarActividad(widget.slug, 'juego_imagen', token: token);
+    } catch (_) {}
   }
 
   void _reiniciar() {
@@ -108,11 +116,16 @@ class _FindImageScreenState extends State<FindImageScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
-          : _palabras.isEmpty
-              ? _buildVacio()
-              : _completado
-                  ? _buildCompletado()
-                  : _buildJuego(),
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: _palabras.isEmpty
+                    ? _buildVacio()
+                    : _completado
+                        ? _buildCompletado()
+                        : _buildJuego(),
+              ),
+            ),
     );
   }
 
@@ -153,45 +166,50 @@ class _FindImageScreenState extends State<FindImageScreen> {
                   ]),
                 ),
                 const SizedBox(height: 24),
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.0,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  children: _opciones.map((idx) {
-                    final opt = _palabras[idx];
-                    Color bg = Colors.white;
-                    Color border = AppColors.lila;
-                    if (_respondida) {
-                      if (idx == _actual) {
-                        bg = AppColors.exito.withOpacity(0.3);
-                        border = AppColors.exitoTexto;
-                      } else if (idx == _seleccionada) {
-                        bg = AppColors.error.withOpacity(0.3);
-                        border = AppColors.errorTexto;
-                      } else {
-                        bg = Colors.grey.shade50;
-                        border = Colors.grey.shade200;
-                      }
-                    }
-                    return GestureDetector(
-                      onTap: () => _seleccionar(idx),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          color: bg,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: border, width: 2.5),
-                          boxShadow: [AppColors.sombraSuave],
-                        ),
-                        child: Center(
-                          child: Text(opt.emoji, style: const TextStyle(fontSize: 60)),
-                        ),
-                      ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    int crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+                    return GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: crossAxisCount,
+                      childAspectRatio: 1.0,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      children: _opciones.map((idx) {
+                        final opt = _palabras[idx];
+                        Color bg = Colors.white;
+                        Color border = AppColors.lila;
+                        if (_respondida) {
+                          if (idx == _actual) {
+                            bg = AppColors.exito.withOpacity(0.3);
+                            border = AppColors.exitoTexto;
+                          } else if (idx == _seleccionada) {
+                            bg = AppColors.error.withOpacity(0.3);
+                            border = AppColors.errorTexto;
+                          } else {
+                            bg = Colors.grey.shade50;
+                            border = Colors.grey.shade200;
+                          }
+                        }
+                        return GestureDetector(
+                          onTap: () => _seleccionar(idx),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            decoration: BoxDecoration(
+                              color: bg,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: border, width: 2.5),
+                              boxShadow: [AppColors.sombraSuave],
+                            ),
+                            child: Center(
+                              child: Text(opt.emoji, style: const TextStyle(fontSize: 60)),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     );
-                  }).toList(),
+                  },
                 ),
                 if (_respondida) ...[
                   const SizedBox(height: 20),

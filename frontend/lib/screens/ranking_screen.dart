@@ -31,6 +31,16 @@ class _RankingScreenState extends State<RankingScreen>
   }
 
   @override
+  void didUpdateWidget(covariant RankingScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Verificar si los puntos o el ID cambiaron (indicativo de refresco de sesión)
+    if (oldWidget.session['puntos'] != widget.session['puntos'] || 
+        _rankingGlobal.isEmpty) {
+      _load();
+    }
+  }
+
+  @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
@@ -121,12 +131,17 @@ class _RankingScreenState extends State<RankingScreen>
         ],
         body: _loading
             ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
-            : TabBarView(
-                controller: _tabController,
-                children: [
-                  _RankingList(students: _rankingGlobal, myId: _miId),
-                  _RankingList(students: _rankingEdad, myId: _miId),
-                ],
+            : Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _RankingList(students: _rankingGlobal, myId: _miId, onRefresh: _load),
+                      _RankingList(students: _rankingEdad, myId: _miId, onRefresh: _load),
+                    ],
+                  ),
+                ),
               ),
       ),
     );
@@ -136,31 +151,41 @@ class _RankingScreenState extends State<RankingScreen>
 class _RankingList extends StatelessWidget {
   final List<dynamic> students;
   final int myId;
-  const _RankingList({required this.students, required this.myId});
+  final Future<void> Function() onRefresh;
+  const _RankingList({required this.students, required this.myId, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
     if (students.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('🚀', style: TextStyle(fontSize: 64)),
-            const SizedBox(height: 16),
-            Text('¡Sé el primero!',
-                style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.texto)),
-            const SizedBox(height: 8),
-            Text('Completa actividades para aparecer aquí',
-                style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave),
-                textAlign: TextAlign.center),
-          ],
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('🚀', style: TextStyle(fontSize: 64)),
+                  const SizedBox(height: 16),
+                  Text('¡Sé el primero!',
+                      style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.texto)),
+                  const SizedBox(height: 8),
+                  Text('Completa actividades para aparecer aquí',
+                      style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave),
+                      textAlign: TextAlign.center),
+                ],
+              ),
+            ),
+          ),
         ),
       );
     }
 
     return RefreshIndicator(
       color: AppColors.rosaOscuro,
-      onRefresh: () async {},
+      onRefresh: onRefresh,
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         itemCount: students.length,
@@ -244,7 +269,17 @@ class _StudentTile extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(avatarEmoji, style: const TextStyle(fontSize: 24)),
+                child: ClipOval(
+                  child: Image.network(
+                    ApiService.resolveStaticUrl(student['avatar_url'] as String?),
+                    width: 44, height: 44,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Text(
+                      student['avatar_emoji'] as String? ?? '🐼',
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),

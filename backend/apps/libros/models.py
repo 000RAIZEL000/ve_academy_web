@@ -55,6 +55,7 @@ class LibroJuego(models.Model):
     libro = models.OneToOneField(Libro, related_name='juego', on_delete=models.CASCADE)
     palabras = models.JSONField(default=list)
     oraciones = models.JSONField(default=list)
+    adivinanzas = models.JSONField(default=list)
 
     def __str__(self):
         return f"Juego: {self.libro.titulo}"

@@ -19,8 +19,10 @@ class BookCoverWidget extends StatelessWidget {
       return _GeneratedCover(titulo: titulo, index: index);
     }
     return Image.network(
-      ApiService.resolveStaticUrl(portadaUrl),
+      portadaUrl,
       fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
       loadingBuilder: (ctx, child, progress) {
         if (progress == null) return child;
         return _GeneratedCover(titulo: titulo, index: index);

@@ -18,9 +18,11 @@ class InsigniaSerializer(serializers.ModelSerializer):
 
 
 class ObjetoTiendaSerializer(serializers.ModelSerializer):
+    imagen_url = serializers.ReadOnlyField()
+
     class Meta:
         model = ObjetoTienda
-        fields = '__all__'
+        fields = ['id', 'nombre', 'categoria', 'precio', 'imagen', 'imagen_url', 'emoji']
 
 
 class CompraSerializer(serializers.ModelSerializer):
@@ -70,4 +72,4 @@ class LibroDetailSerializer(serializers.ModelSerializer):
 class LibroJuegoSerializer(serializers.ModelSerializer):
     class Meta:
         model = LibroJuego
-        fields = ['palabras', 'oraciones']
+        fields = ['palabras', 'oraciones', 'adivinanzas']

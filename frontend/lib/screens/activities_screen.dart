@@ -7,11 +7,13 @@ import '../services/session_service.dart';
 class ActivitiesScreen extends StatefulWidget {
   final Map<String, dynamic> libroDetalle;
   final Map<String, dynamic> session;
+  final void Function(Map<String, dynamic>)? onSessionUpdated;
 
   const ActivitiesScreen({
     super.key,
     required this.libroDetalle,
     required this.session,
+    this.onSessionUpdated,
   });
 
   @override
@@ -104,6 +106,11 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
       _puntosGanados = (result['puntos_ganados'] as num?)?.toInt() ?? 0;
       final totalPuntos = (result['puntos_totales'] as num?)?.toInt() ?? 0;
       await SessionService.updatePuntos(totalPuntos);
+
+      if (widget.onSessionUpdated != null) {
+        final upd = Map<String, dynamic>.from(widget.session)..['puntos'] = totalPuntos;
+        widget.onSessionUpdated!(upd);
+      }
 
       final pct = total > 0 ? _correctas / total : 0.0;
       _estrellas = pct >= 0.9 ? 3 : (pct >= 0.6 ? 2 : 1);

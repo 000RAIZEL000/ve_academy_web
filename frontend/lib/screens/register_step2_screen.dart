@@ -128,7 +128,15 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
                         border: Border.all(color: AppColors.rosa, width: 1.5),
                       ),
                       child: Row(children: [
-                        Text(_avatarEmoji(), style: const TextStyle(fontSize: 32)),
+                        ClipOval(
+                          child: Image.network(
+                            ApiService.resolveStaticUrl('/static/img/avatars/${widget.step1Data['avatar']}.png'),
+                            width: 50, height: 50,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Text(_avatarEmoji(), style: const TextStyle(fontSize: 32)),
+                          ),
+                        ),
                         const SizedBox(width: 14),
                         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(widget.step1Data['nombre'] as String,

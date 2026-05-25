@@ -7,7 +7,8 @@ import 'book_detail_screen.dart';
 
 class LibraryScreen extends StatefulWidget {
   final Map<String, dynamic> session;
-  const LibraryScreen({super.key, required this.session});
+  final void Function(Map<String, dynamic>)? onSessionUpdated;
+  const LibraryScreen({super.key, required this.session, this.onSessionUpdated});
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
@@ -69,39 +70,44 @@ class _LibraryScreenState extends State<LibraryScreen> {
     return Scaffold(
       backgroundColor: AppColors.fondo,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            _buildSearchBar(),
-            _buildFiltrosEdad(),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
-                  : _filtrados.isEmpty
-                      ? _buildEmpty()
-                      : RefreshIndicator(
-                          onRefresh: _cargarLibros,
-                          color: AppColors.rosaOscuro,
-                          child: GridView.builder(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: w > 700 ? 32 : 16, vertical: 12),
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: cols,
-                              childAspectRatio: 0.72,
-                              crossAxisSpacing: 14,
-                              mainAxisSpacing: 14,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                _buildSearchBar(),
+                _buildFiltrosEdad(),
+                Expanded(
+                  child: _loading
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.rosaOscuro))
+                      : _filtrados.isEmpty
+                          ? _buildEmpty()
+                          : RefreshIndicator(
+                              onRefresh: _cargarLibros,
+                              color: AppColors.rosaOscuro,
+                              child: GridView.builder(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: w > 700 ? 32 : 16, vertical: 12),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: cols,
+                                  childAspectRatio: 0.72,
+                                  crossAxisSpacing: 14,
+                                  mainAxisSpacing: 14,
+                                ),
+                                itemCount: _filtrados.length,
+                                itemBuilder: (_, i) => _BookCard(
+                                  libro: _filtrados[i],
+                                  colorIndex: i,
+                                  onTap: () => _abrirLibro(_filtrados[i]),
+                                ),
+                              ),
                             ),
-                            itemCount: _filtrados.length,
-                            itemBuilder: (_, i) => _BookCard(
-                              libro: _filtrados[i],
-                              colorIndex: i,
-                              onTap: () => _abrirLibro(_filtrados[i]),
-                            ),
-                          ),
-                        ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -219,6 +225,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         builder: (_) => BookDetailScreen(
           libro: libro,
           session: widget.session,
+          onSessionUpdated: widget.onSessionUpdated,
         ),
       ),
     );

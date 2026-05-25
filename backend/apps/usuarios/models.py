@@ -108,6 +108,13 @@ class ObjetoTienda(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.precio} pts)"
 
+    @property
+    def imagen_url(self):
+        if not self.imagen:
+            return ""
+        # Asumiendo que las imágenes están en static/img/tienda/
+        return f"/static/img/tienda/{self.imagen}"
+
 
 class CompraEstudiante(models.Model):
     estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='compras')

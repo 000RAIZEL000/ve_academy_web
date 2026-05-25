@@ -29,4 +29,5 @@ urlpatterns = [
     path('guardar/', views.guardar_resultado, name='api_guardar'),
     path('progreso/<int:pk>/', views.get_progreso, name='api_progreso'),
     path('historial/<int:pk>/', views.historial_estudiante, name='api_historial'),
+    path('completar-actividad/', views.completar_actividad, name='api_completar_actividad'),
 ]
