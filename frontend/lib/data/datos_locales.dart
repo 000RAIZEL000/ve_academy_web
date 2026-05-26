@@ -15,7 +15,17 @@ class DatosLocales {
 
   static Map<String, dynamic>? getLibroDetalle(String slug) {
     try {
-      return Map<String, dynamic>.from(_libros.firstWhere((l) => l['slug'] == slug));
+      final libro = _libros.firstWhere((l) => l['slug'] == slug);
+      final copy = Map<String, dynamic>.from(libro);
+      // Deep-copy preguntas: const maps have runtime type Map<String,Object>,
+      // not Map<String,dynamic>. activities_screen.dart calls .cast<Map<String,dynamic>>()
+      // which would throw a TypeError without this conversion.
+      if (copy['preguntas'] is List) {
+        copy['preguntas'] = (copy['preguntas'] as List)
+            .map((p) => Map<String, dynamic>.from(p as Map))
+            .toList();
+      }
+      return copy;
     } catch (_) {
       return null;
     }
@@ -26,12 +36,23 @@ class DatosLocales {
   static BookGameData? getJuegos(String slug) {
     final data = _juegos[slug];
     if (data == null) return null;
-    return BookGameData.fromJson(data);
+    // Deep-copy to Map<String,dynamic> so BookGameData.fromJson casts succeed
+    final copy = <String, dynamic>{
+      'palabras': (data['palabras'] as List)
+          .map((p) => Map<String, dynamic>.from(p as Map))
+          .toList(),
+      'oraciones': List<String>.from(data['oraciones'] as List),
+      'adivinanzas': (data['adivinanzas'] as List)
+          .map((a) => Map<String, dynamic>.from(a as Map))
+          .toList(),
+    };
+    return BookGameData.fromJson(copy);
   }
 
   // ── Tienda ──────────────────────────────────────────────────────────────────
 
-  static List<Map<String, dynamic>> getTienda() => List.unmodifiable(_tienda);
+  static List<Map<String, dynamic>> getTienda() =>
+      _tienda.map((t) => Map<String, dynamic>.from(t)).toList();
 
   // ── Datos ───────────────────────────────────────────────────────────────────
 
