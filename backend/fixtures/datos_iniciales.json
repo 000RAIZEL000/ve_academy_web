@@ -1,0 +1,1673 @@
+[
+{
+  "model": "libros.libro",
+  "pk": 1,
+  "fields": {
+    "slug": "leon_raton",
+    "titulo": "El León y el Ratón",
+    "autor": "Anónimo",
+    "texto": "Un león atrapó a un pequeño ratón. El ratón pidió perdón y el león lo dejó ir. Días después, el león quedó atrapado en una red. El ratón escuchó sus rugidos, corrió y con sus dientes rompió la cuerda para liberarlo. El león aprendió que nadie es demasiado pequeño para ayudar.",
+    "portada": "leon_raton.png",
+    "activo": true,
+    "orden": 1,
+    "edad_min": 5
+  }
+},
+{
+  "model": "libros.libro",
+  "pk": 2,
+  "fields": {
+    "slug": "liebre_tortuga",
+    "titulo": "La Liebre y la Tortuga",
+    "autor": "Anónimo",
+    "texto": "Una liebre se burlaba de la lentitud de una tortuga. Decidieron hacer una carrera. La liebre era muy rápida, pero se confió y se quedó dormida. La tortuga siguió sin detenerse y ganó. La liebre aprendió a no subestimar a los demás.",
+    "portada": "liebre_tortuga.png",
+    "activo": true,
+    "orden": 2,
+    "edad_min": 5
+  }
+},
+{
+  "model": "libros.libro",
+  "pk": 3,
+  "fields": {
+    "slug": "zorro_uvas",
+    "titulo": "El Zorro y las Uvas",
+    "autor": "Anónimo",
+    "texto": "Un zorro hambriento vio unas uvas colgando de una parra. Saltó y saltó, pero no logró alcanzarlas. Cansado, se fue diciendo: '¡Están verdes!'. A veces despreciamos lo que no podemos conseguir.",
+    "portada": "zorro_uvas.png",
+    "activo": true,
+    "orden": 3,
+    "edad_min": 5
+  }
+},
+{
+  "model": "libros.libro",
+  "pk": 4,
+  "fields": {
+    "slug": "hormiga_valiente",
+    "titulo": "La Hormiga Valiente",
+    "autor": "Anónimo",
+    "texto": "En un hormiguero muy grande vivía Lina, una hormiga pequeñita. Todas las hormigas cargaban hojas, pero Lina no podía cargar ni una. Un día de lluvia, el río empezó a crecer y el agua llegó hasta la entrada del hormiguero. Todas corrieron asustadas. Lina tuvo una idea: agarró una ramita y la puso como puente para que todas cruzaran al otro lado. Una por una, las hormigas pasaron por el puente de Lina. La reina hormiga la felicitó: '¡No hace falta ser fuerte para ser valiente!'. Desde ese día, Lina se convirtió en la exploradora oficial del hormiguero.",
+    "portada": "hormiga_valiente.png",
+    "activo": true,
+    "orden": 4,
+    "edad_min": 5
+  }
+},
+{
+  "model": "libros.libro",
+  "pk": 5,
+  "fields": {
+    "slug": "pajaro_volar",
+    "titulo": "El Pájaro que Aprendió a Volar",
+    "autor": "Anónimo",
+    "texto": "Pipo era un gorrión que vivía en un nido alto en un árbol. Todos sus hermanos ya sabían volar, pero Pipo tenía miedo de saltar. '¿Y si me caigo?', pensaba cada mañana. Su mamá le dijo: 'Todos sentimos miedo, pero hay que intentarlo'. Un día, una tormenta sacudió el árbol y el nido empezó a caer. Pipo no tuvo más remedio que abrir las alas. Al principio tembló, pero luego sintió el viento bajo sus plumas. ¡Estaba volando! Dio vueltas alrededor del árbol, subió hasta las nubes y bajó riendo. 'El miedo no desaparece', le dijo su mamá, 'solo aprendes a volar con él'.",
+    "portada": "pajaro_volar.png",
+    "activo": true,
+    "orden": 5,
+    "edad_min": 5
+  }
+},
+{
+  "model": "libros.libro",
+  "pk": 6,
+  "fields": {
+    "slug": "arbol_magico",
+    "titulo": "El Árbol Mágico",
+    "autor": "Anónimo",
+    "texto": "En el centro del bosque había un árbol enorme con hojas de colores brillantes. Los animales decían que era mágico: si le contabas un secreto, te daba un fruto especial. El conejo le contó que se sentía solo. El árbol le dio una manzana dorada. Cuando el conejo la comió, escuchó las voces de otros animales que también se sentían solos. El conejo fue a buscarlos y juntos formaron un grupo de amigos. La ardilla le preguntó al conejo: '¿El árbol te dio magia?'. El conejo sonrió: 'No, me dio el valor de buscar lo que necesitaba'. Desde entonces, los animales visitaban al árbol no por magia, sino para pensar en lo que realmente querían.",
+    "portada": "arbol_magico.png",
+    "activo": true,
+    "orden": 6,
+    "edad_min": 5
+  }
+},
+{
+  "model": "libros.libro",
+  "pk": 7,
+  "fields": {
+    "slug": "sol_luna",
+    "titulo": "El Sol y la Luna",
+    "autor": "Anónimo",
+    "texto": "El Sol y la Luna eran muy amigos, pero nunca podían verse. Cuando el Sol salía, la Luna se iba a dormir. Cuando la Luna aparecía, el Sol ya se había ido. Un día, el Sol le dejó un mensaje pintado en las nubes del atardecer: 'Te extraño, amiga'. La Luna respondió dibujando estrellas que formaban un corazón. El Sol se puso tan contento que al día siguiente pintó el cielo de rosa, naranja y dorado. Desde entonces, cada atardecer es el momento en que el Sol y la Luna se saludan. Si miras bien el cielo cuando el día se acaba, a veces puedes ver a la Luna asomarse mientras el Sol aún brilla.",
+    "portada": "sol_luna.png",
+    "activo": true,
+    "orden": 7,
+    "edad_min": 5
+  }
+},
+{
+  "model": "libros.libro",
+  "pk": 8,
+  "fields": {
+    "slug": "ballena_amiga",
+    "titulo": "La Ballena Amiga",
+    "autor": "Anónimo",
+    "texto": "En el fondo del mar vivía Azul, una ballena enorme y muy tímida. Los peces pequeños le tenían miedo por su tamaño. Un día, una red de pescadores atrapó a un grupo de peces. Estaban asustados y no podían escapar. Azul escuchó sus gritos y, aunque le daba vergüenza acercarse, nadó hacia la red. Con su cola fuerte rompió las cuerdas y los peces quedaron libres. '¡Gracias, Azul!', gritaron los peces. Un pececito naranja se acercó y le dijo: 'Eres grande por fuera, pero también por dentro'. Desde ese día, Azul jugaba con los peces todos los días y descubrió que ser diferente no significaba estar solo.",
+    "portada": "ballena_amiga.png",
+    "activo": true,
+    "orden": 8,
+    "edad_min": 5
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 55,
+  "fields": {
+    "libro": 1,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Quién ayudó al león a salir de la red?",
+    "opcion_a": "El ratón",
+    "opcion_b": "La tortuga",
+    "opcion_c": "El zorro",
+    "correcta": 0
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 56,
+  "fields": {
+    "libro": 1,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué el león dejó ir al ratón la primera vez?",
+    "opcion_a": "Porque tenía sueño",
+    "opcion_b": "Porque el ratón le pidió perdón",
+    "opcion_c": "Porque tenía hambre",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 57,
+  "fields": {
+    "libro": 1,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué enseñanza deja la historia?",
+    "opcion_a": "Los grandes no necesitan a los pequeños",
+    "opcion_b": "A veces los pequeños pueden ayudar mucho",
+    "opcion_c": "Es mejor no perdonar nunca",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 58,
+  "fields": {
+    "libro": 2,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Quién ganó la carrera?",
+    "opcion_a": "La liebre",
+    "opcion_b": "La tortuga",
+    "opcion_c": "Nadie",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 59,
+  "fields": {
+    "libro": 2,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué perdió la liebre?",
+    "opcion_a": "Porque se perdió",
+    "opcion_b": "Porque se detuvo a dormir",
+    "opcion_c": "Porque se hizo de noche",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 60,
+  "fields": {
+    "libro": 2,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Cuál es la moraleja más cercana?",
+    "opcion_a": "Siempre gana el más rápido",
+    "opcion_b": "La constancia vale más que la velocidad",
+    "opcion_c": "Dormir es malo",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 61,
+  "fields": {
+    "libro": 3,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué quería comer el zorro?",
+    "opcion_a": "Manzanas",
+    "opcion_b": "Uvas",
+    "opcion_c": "Peras",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 62,
+  "fields": {
+    "libro": 3,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué el zorro dijo que estaban verdes?",
+    "opcion_a": "Porque realmente estaban verdes",
+    "opcion_b": "Porque no podía alcanzarlas",
+    "opcion_c": "Porque no le gustaban",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 63,
+  "fields": {
+    "libro": 3,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué actitud muestra el zorro al final?",
+    "opcion_a": "Aceptar con calma",
+    "opcion_b": "Aprender a trepar",
+    "opcion_c": "Despreciar lo que no consiguió",
+    "correcta": 2
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 64,
+  "fields": {
+    "libro": 4,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Cómo se llama la hormiga pequeñita?",
+    "opcion_a": "Luna",
+    "opcion_b": "Lina",
+    "opcion_c": "Lola",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 65,
+  "fields": {
+    "libro": 4,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué usó Lina para hacer el puente?",
+    "opcion_a": "Una hoja",
+    "opcion_b": "Una ramita",
+    "opcion_c": "Una piedra",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 66,
+  "fields": {
+    "libro": 4,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué pasó cuando llovió mucho?",
+    "opcion_a": "Salió el sol",
+    "opcion_b": "El río creció",
+    "opcion_c": "Cayó nieve",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 67,
+  "fields": {
+    "libro": 4,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué las hormigas estaban asustadas?",
+    "opcion_a": "Porque vieron un pájaro",
+    "opcion_b": "Porque el agua podía inundar el hormiguero",
+    "opcion_c": "Porque tenían hambre",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 68,
+  "fields": {
+    "libro": 4,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué problema tenía Lina al principio?",
+    "opcion_a": "No podía cargar hojas como las demás",
+    "opcion_b": "No sabía caminar",
+    "opcion_c": "No tenía amigos",
+    "correcta": 0
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 69,
+  "fields": {
+    "libro": 4,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué la reina felicitó a Lina?",
+    "opcion_a": "Porque cargó muchas hojas",
+    "opcion_b": "Porque salvó al hormiguero con su idea",
+    "opcion_c": "Porque corrió muy rápido",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 70,
+  "fields": {
+    "libro": 4,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué quiere decir 'no hace falta ser fuerte para ser valiente'?",
+    "opcion_a": "Solo los fuertes pueden ayudar",
+    "opcion_b": "La valentía no depende del tamaño o la fuerza",
+    "opcion_c": "Ser valiente es peligroso",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 71,
+  "fields": {
+    "libro": 4,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué cualidad de Lina fue más importante en la emergencia?",
+    "opcion_a": "Su fuerza física",
+    "opcion_b": "Su inteligencia y creatividad",
+    "opcion_c": "Su velocidad",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 72,
+  "fields": {
+    "libro": 4,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué hubiera pasado si Lina no hubiera actuado?",
+    "opcion_a": "Nada, la lluvia se iba a detener",
+    "opcion_b": "El hormiguero se hubiera inundado",
+    "opcion_c": "Otra hormiga habría tenido la misma idea",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 73,
+  "fields": {
+    "libro": 5,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Cómo se llama el pajarito?",
+    "opcion_a": "Pepe",
+    "opcion_b": "Pipo",
+    "opcion_c": "Tito",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 74,
+  "fields": {
+    "libro": 5,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿De qué tenía miedo Pipo?",
+    "opcion_a": "De la oscuridad",
+    "opcion_b": "De volar",
+    "opcion_c": "Del agua",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 75,
+  "fields": {
+    "libro": 5,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué pasó con el nido durante la tormenta?",
+    "opcion_a": "Se mojó un poco",
+    "opcion_b": "Empezó a caer",
+    "opcion_c": "Se hizo más grande",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 76,
+  "fields": {
+    "libro": 5,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué Pipo no volaba como sus hermanos?",
+    "opcion_a": "Porque no tenía alas",
+    "opcion_b": "Porque le daba miedo caerse",
+    "opcion_c": "Porque era muy pequeño",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 77,
+  "fields": {
+    "libro": 5,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué obligó a Pipo a intentar volar?",
+    "opcion_a": "Su mamá lo empujó",
+    "opcion_b": "La tormenta sacudió el nido",
+    "opcion_c": "Sus hermanos lo retaron",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 78,
+  "fields": {
+    "libro": 5,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué sintió Pipo cuando por fin voló?",
+    "opcion_a": "Mucho frío",
+    "opcion_b": "Alegría y libertad",
+    "opcion_c": "Más miedo que antes",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 79,
+  "fields": {
+    "libro": 5,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué quiso decir la mamá con 'aprendes a volar con él'?",
+    "opcion_a": "Que el miedo nunca se va pero puedes actuar igual",
+    "opcion_b": "Que volar es fácil",
+    "opcion_c": "Que el miedo es malo",
+    "correcta": 0
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 80,
+  "fields": {
+    "libro": 5,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué enseñanza puedes aplicar a tu propia vida?",
+    "opcion_a": "Es mejor nunca arriesgarse",
+    "opcion_b": "A veces hay que enfrentar el miedo para crecer",
+    "opcion_c": "El miedo siempre desaparece solo",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 81,
+  "fields": {
+    "libro": 5,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué es importante que Pipo haya volado por necesidad y no por obligación?",
+    "opcion_a": "Porque así aprendió más rápido",
+    "opcion_b": "Porque nadie puede obligarte a superar tus miedos",
+    "opcion_c": "Porque las tormentas son buenas",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 82,
+  "fields": {
+    "libro": 6,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Dónde estaba el árbol mágico?",
+    "opcion_a": "En la playa",
+    "opcion_b": "En el centro del bosque",
+    "opcion_c": "En una montaña",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 83,
+  "fields": {
+    "libro": 6,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué animal le contó un secreto al árbol?",
+    "opcion_a": "La ardilla",
+    "opcion_b": "El conejo",
+    "opcion_c": "El oso",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 84,
+  "fields": {
+    "libro": 6,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué fruto le dio el árbol al conejo?",
+    "opcion_a": "Una pera verde",
+    "opcion_b": "Una manzana dorada",
+    "opcion_c": "Una naranja",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 85,
+  "fields": {
+    "libro": 6,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué secreto le contó el conejo al árbol?",
+    "opcion_a": "Que tenía hambre",
+    "opcion_b": "Que se sentía solo",
+    "opcion_c": "Que quería volar",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 86,
+  "fields": {
+    "libro": 6,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué pasó cuando el conejo comió la manzana?",
+    "opcion_a": "Se hizo invisible",
+    "opcion_b": "Pudo escuchar a otros animales que se sentían solos",
+    "opcion_c": "Se convirtió en un árbol",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 87,
+  "fields": {
+    "libro": 6,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué los animales seguían visitando al árbol?",
+    "opcion_a": "Para pedir más frutos",
+    "opcion_b": "Para pensar en lo que realmente querían",
+    "opcion_c": "Porque les daba miedo el bosque",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 88,
+  "fields": {
+    "libro": 6,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Era realmente mágico el árbol o la magia estaba en otra parte?",
+    "opcion_a": "El árbol era totalmente mágico",
+    "opcion_b": "La magia estaba en el valor que daba para actuar",
+    "opcion_c": "No había ninguna magia",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 89,
+  "fields": {
+    "libro": 6,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué quiso decir el conejo con 'me dio el valor de buscar lo que necesitaba'?",
+    "opcion_a": "Que la manzana le dio superpoderes",
+    "opcion_b": "Que el árbol lo ayudó a darse cuenta y actuar",
+    "opcion_c": "Que el conejo ya no necesitaba amigos",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 90,
+  "fields": {
+    "libro": 6,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué nos enseña esta historia sobre resolver nuestros problemas?",
+    "opcion_a": "Que siempre necesitamos magia",
+    "opcion_b": "Que muchas veces la solución está en nosotros mismos",
+    "opcion_c": "Que los árboles pueden hablar",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 91,
+  "fields": {
+    "libro": 7,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Quiénes son amigos en esta historia?",
+    "opcion_a": "El río y la montaña",
+    "opcion_b": "El Sol y la Luna",
+    "opcion_c": "Las estrellas y las nubes",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 92,
+  "fields": {
+    "libro": 7,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué dibujó la Luna con las estrellas?",
+    "opcion_a": "Una flor",
+    "opcion_b": "Un corazón",
+    "opcion_c": "Una casa",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 93,
+  "fields": {
+    "libro": 7,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿De qué colores pintó el Sol el cielo?",
+    "opcion_a": "Azul y verde",
+    "opcion_b": "Rosa, naranja y dorado",
+    "opcion_c": "Negro y gris",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 94,
+  "fields": {
+    "libro": 7,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué el Sol y la Luna no podían verse?",
+    "opcion_a": "Porque estaban peleados",
+    "opcion_b": "Porque cuando uno salía, el otro se iba",
+    "opcion_c": "Porque vivían muy lejos",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 95,
+  "fields": {
+    "libro": 7,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Cómo se comunicaron el Sol y la Luna?",
+    "opcion_a": "Con un teléfono",
+    "opcion_b": "Con mensajes en el cielo: nubes y estrellas",
+    "opcion_c": "Gritando muy fuerte",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 96,
+  "fields": {
+    "libro": 7,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué momento del día representa su saludo?",
+    "opcion_a": "La medianoche",
+    "opcion_b": "El atardecer",
+    "opcion_c": "El mediodía",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 97,
+  "fields": {
+    "libro": 7,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué nos enseña esta historia sobre la amistad?",
+    "opcion_a": "Los amigos deben estar siempre juntos",
+    "opcion_b": "Se puede mantener una amistad aunque no estés cerca",
+    "opcion_c": "Solo son amigos los que se ven todos los días",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 98,
+  "fields": {
+    "libro": 7,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué el autor dice que el atardecer es un 'saludo'?",
+    "opcion_a": "Porque es el único momento en que Sol y Luna comparten el cielo",
+    "opcion_b": "Porque el cielo se pone oscuro",
+    "opcion_c": "Porque las nubes desaparecen",
+    "correcta": 0
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 99,
+  "fields": {
+    "libro": 7,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué sentimiento principal expresa la historia?",
+    "opcion_a": "Tristeza porque nunca se ven",
+    "opcion_b": "Cariño y creatividad para mantener la amistad",
+    "opcion_c": "Enojo porque el Sol brilla más",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 100,
+  "fields": {
+    "libro": 8,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Cómo se llama la ballena?",
+    "opcion_a": "Roja",
+    "opcion_b": "Azul",
+    "opcion_c": "Verde",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 101,
+  "fields": {
+    "libro": 8,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué atrapó a los peces?",
+    "opcion_a": "Una ola",
+    "opcion_b": "Una red",
+    "opcion_c": "Un tiburón",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 102,
+  "fields": {
+    "libro": 8,
+    "edad": 5,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué usó Azul para romper la red?",
+    "opcion_a": "Su boca",
+    "opcion_b": "Su cola",
+    "opcion_c": "Sus aletas",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 103,
+  "fields": {
+    "libro": 8,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué los peces le tenían miedo a Azul?",
+    "opcion_a": "Porque era mala",
+    "opcion_b": "Porque era muy grande",
+    "opcion_c": "Porque hacía mucho ruido",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 104,
+  "fields": {
+    "libro": 8,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué a Azul le daba vergüenza acercarse?",
+    "opcion_a": "Porque era tímida y temía asustarlos",
+    "opcion_b": "Porque no sabía nadar bien",
+    "opcion_c": "Porque estaba enojada",
+    "correcta": 0
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 105,
+  "fields": {
+    "libro": 8,
+    "edad": 6,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué cambió después de que Azul salvó a los peces?",
+    "opcion_a": "Los peces se fueron lejos",
+    "opcion_b": "Azul y los peces se hicieron amigos",
+    "opcion_c": "Azul se fue a otro mar",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 106,
+  "fields": {
+    "libro": 8,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué quiso decir el pececito con 'eres grande por fuera, pero también por dentro'?",
+    "opcion_a": "Que Azul come mucho",
+    "opcion_b": "Que Azul tiene un corazón bondadoso y generoso",
+    "opcion_c": "Que Azul es más grande que los demás animales",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 107,
+  "fields": {
+    "libro": 8,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Qué nos enseña la historia sobre juzgar a otros por su apariencia?",
+    "opcion_a": "Es correcto tener miedo de los que son diferentes",
+    "opcion_b": "No debemos juzgar a alguien solo por cómo se ve",
+    "opcion_c": "Los grandes siempre dan miedo",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.pregunta",
+  "pk": 108,
+  "fields": {
+    "libro": 8,
+    "edad": 7,
+    "tipo": "multiple",
+    "dificultad": 1,
+    "enunciado": "¿Por qué es importante que Azul haya superado su timidez?",
+    "opcion_a": "Porque así pudo presumir",
+    "opcion_b": "Porque gracias a eso salvó a los peces y ganó amigos",
+    "opcion_c": "Porque los tímidos no pueden tener amigos",
+    "correcta": 1
+  }
+},
+{
+  "model": "libros.librojuego",
+  "pk": 1,
+  "fields": {
+    "libro": 1,
+    "palabras": [
+      {
+        "word": "LEON",
+        "emoji": "🦁"
+      },
+      {
+        "word": "RATON",
+        "emoji": "🐭"
+      },
+      {
+        "word": "RED",
+        "emoji": "🕸️"
+      },
+      {
+        "word": "PERDON",
+        "emoji": "🙏"
+      },
+      {
+        "word": "CUERDA",
+        "emoji": "🔗"
+      }
+    ],
+    "oraciones": [
+      "El ratón ayudó al león",
+      "El ratón rompió la red"
+    ],
+    "adivinanzas": [
+      {
+        "pregunta": "Soy grande y fuerte con una gran melena, si ruge la selva, todos se frenan. ¿Quién soy?",
+        "respuesta": "LEON",
+        "opciones": [
+          "TIGRE",
+          "LEON",
+          "OSO"
+        ]
+      },
+      {
+        "pregunta": "Soy pequeñito y tengo bigotes, ayudo al león rompiendo los barrotes. ¿Quién soy?",
+        "respuesta": "RATON",
+        "opciones": [
+          "CONEJO",
+          "RATON",
+          "GATO"
+        ]
+      },
+      {
+        "pregunta": "Con mis dientes rompo la red, para que el león no tenga sed. ¿Qué soy?",
+        "respuesta": "RATON",
+        "opciones": [
+          "RATON",
+          "ARDILLA",
+          "PERICO"
+        ]
+      }
+    ]
+  }
+},
+{
+  "model": "libros.librojuego",
+  "pk": 2,
+  "fields": {
+    "libro": 2,
+    "palabras": [
+      {
+        "word": "LIEBRE",
+        "emoji": "🐰"
+      },
+      {
+        "word": "TORTUGA",
+        "emoji": "🐢"
+      },
+      {
+        "word": "CARRERA",
+        "emoji": "🏁"
+      },
+      {
+        "word": "DORMIR",
+        "emoji": "💤"
+      },
+      {
+        "word": "RAPIDA",
+        "emoji": "💨"
+      }
+    ],
+    "oraciones": [
+      "La tortuga ganó la carrera",
+      "La liebre se quedó dormida"
+    ],
+    "adivinanzas": [
+      {
+        "pregunta": "Camino muy lento y llevo mi casa, si quieres ganarme, mira qué me pasa. ¿Quién soy?",
+        "respuesta": "TORTUGA",
+        "opciones": [
+          "CARACOL",
+          "TORTUGA",
+          "GUSANO"
+        ]
+      },
+      {
+        "pregunta": "Corro muy rápido y soy orejona, pero me dormí por ser fanfarrona. ¿Quién soy?",
+        "respuesta": "LIEBRE",
+        "opciones": [
+          "CONEJO",
+          "LIEBRE",
+          "CANGURO"
+        ]
+      }
+    ]
+  }
+},
+{
+  "model": "libros.librojuego",
+  "pk": 3,
+  "fields": {
+    "libro": 3,
+    "palabras": [
+      {
+        "word": "ZORRO",
+        "emoji": "🦊"
+      },
+      {
+        "word": "UVAS",
+        "emoji": "🍇"
+      },
+      {
+        "word": "SALTAR",
+        "emoji": "🦘"
+      },
+      {
+        "word": "VERDE",
+        "emoji": "🌿"
+      },
+      {
+        "word": "PARRA",
+        "emoji": "🌱"
+      }
+    ],
+    "oraciones": [
+      "El zorro quería comer las uvas",
+      "Las uvas estaban muy altas"
+    ],
+    "adivinanzas": [
+      {
+        "pregunta": "Soy muy astuto y tengo cola larga, busco la fruta que en la parra cuelga cargada. ¿Quién soy?",
+        "respuesta": "ZORRO",
+        "opciones": [
+          "LOBO",
+          "ZORRO",
+          "PERRO"
+        ]
+      },
+      {
+        "pregunta": "Somos redondas, dulces y violetas, pero para el zorro estábamos 'verdes' y quietas. ¿Qué somos?",
+        "respuesta": "UVAS",
+        "opciones": [
+          "MANZANAS",
+          "UVAS",
+          "CEREZAS"
+        ]
+      }
+    ]
+  }
+},
+{
+  "model": "libros.librojuego",
+  "pk": 4,
+  "fields": {
+    "libro": 4,
+    "palabras": [
+      {
+        "word": "HORMIGA",
+        "emoji": "🐜"
+      },
+      {
+        "word": "PUENTE",
+        "emoji": "🌉"
+      },
+      {
+        "word": "LLUVIA",
+        "emoji": "🌧️"
+      },
+      {
+        "word": "RAMITA",
+        "emoji": "🌿"
+      },
+      {
+        "word": "REINA",
+        "emoji": "👑"
+      }
+    ],
+    "oraciones": [
+      "Lina salvó al hormiguero",
+      "El río creció con la lluvia"
+    ],
+    "adivinanzas": [
+      {
+        "pregunta": "Soy pequeñita y trabajo un montón, hice un puente con una ramita en la inundación. ¿Quién soy?",
+        "respuesta": "HORMIGA",
+        "opciones": [
+          "ABEJA",
+          "HORMIGA",
+          "ARAÑA"
+        ]
+      }
+    ]
+  }
+},
+{
+  "model": "libros.librojuego",
+  "pk": 5,
+  "fields": {
+    "libro": 5,
+    "palabras": [
+      {
+        "word": "PAJARO",
+        "emoji": "🐦"
+      },
+      {
+        "word": "VOLAR",
+        "emoji": "✈️"
+      },
+      {
+        "word": "MIEDO",
+        "emoji": "😨"
+      },
+      {
+        "word": "NIDO",
+        "emoji": "🪺"
+      },
+      {
+        "word": "PIPO",
+        "emoji": "⭐"
+      }
+    ],
+    "oraciones": [
+      "Pipo aprendió a volar",
+      "La tormenta sacudió el nido"
+    ],
+    "adivinanzas": [
+      {
+        "pregunta": "Tengo plumas y pico, y aunque tenía miedo, volé por el cielo rico. ¿Quién soy?",
+        "respuesta": "PAJARO",
+        "opciones": [
+          "MARIPOSA",
+          "PAJARO",
+          "AVION"
+        ]
+      }
+    ]
+  }
+},
+{
+  "model": "libros.librojuego",
+  "pk": 6,
+  "fields": {
+    "libro": 6,
+    "palabras": [
+      {
+        "word": "ARBOL",
+        "emoji": "🌳"
+      },
+      {
+        "word": "CONEJO",
+        "emoji": "🐰"
+      },
+      {
+        "word": "MANZANA",
+        "emoji": "🍎"
+      },
+      {
+        "word": "AMIGOS",
+        "emoji": "👫"
+      },
+      {
+        "word": "SECRETO",
+        "emoji": "🤫"
+      }
+    ],
+    "oraciones": [
+      "El conejo se sentía solo",
+      "El árbol le dio una manzana"
+    ],
+    "adivinanzas": [
+      {
+        "pregunta": "Tengo hojas de colores y frutos dorados, ayudo a los animales que están solitarios. ¿Qué soy?",
+        "respuesta": "ARBOL",
+        "opciones": [
+          "FLOR",
+          "ARBOL",
+          "ARBÚSTO"
+        ]
+      }
+    ]
+  }
+},
+{
+  "model": "libros.librojuego",
+  "pk": 7,
+  "fields": {
+    "libro": 7,
+    "palabras": [
+      {
+        "word": "SOL",
+        "emoji": "☀️"
+      },
+      {
+        "word": "LUNA",
+        "emoji": "🌙"
+      },
+      {
+        "word": "NUBES",
+        "emoji": "☁️"
+      },
+      {
+        "word": "CIELO",
+        "emoji": "🌤️"
+      },
+      {
+        "word": "ROSA",
+        "emoji": "🌹"
+      }
+    ],
+    "oraciones": [
+      "El Sol y la Luna eran amigos",
+      "La Luna dibujó un corazón"
+    ],
+    "adivinanzas": [
+      {
+        "pregunta": "Salgo de día y caliento la piel, le dejé un mensaje a mi amiga fiel. ¿Quién soy?",
+        "respuesta": "SOL",
+        "opciones": [
+          "FUEGO",
+          "SOL",
+          "FOCO"
+        ]
+      },
+      {
+        "pregunta": "Salgo de noche y dibujo con estrellas, un corazón para mi amigo de luces bellas. ¿Quién soy?",
+        "respuesta": "LUNA",
+        "opciones": [
+          "LUNA",
+          "ESTRELLA",
+          "COMETA"
+        ]
+      }
+    ]
+  }
+},
+{
+  "model": "libros.librojuego",
+  "pk": 8,
+  "fields": {
+    "libro": 8,
+    "palabras": [
+      {
+        "word": "BALLENA",
+        "emoji": "🐋"
+      },
+      {
+        "word": "PECES",
+        "emoji": "🐠"
+      },
+      {
+        "word": "COLA",
+        "emoji": "🌊"
+      },
+      {
+        "word": "AZUL",
+        "emoji": "💙"
+      },
+      {
+        "word": "TIMIDA",
+        "emoji": "😳"
+      }
+    ],
+    "oraciones": [
+      "Azul rompió la red con su cola",
+      "Los peces se hicieron amigos"
+    ],
+    "adivinanzas": [
+      {
+        "pregunta": "Soy la más grande de todo el océano, salvé a mis amigos de un destino temprano. ¿Quién soy?",
+        "respuesta": "BALLENA",
+        "opciones": [
+          "TIBURÓN",
+          "BALLENA",
+          "DELFÍN"
+        ]
+      }
+    ]
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 1,
+  "fields": {
+    "nombre": "Dragón de Fuego",
+    "categoria": "avatar",
+    "precio": 500,
+    "imagen": "dragon.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 2,
+  "fields": {
+    "nombre": "Unicornio Mágico",
+    "categoria": "avatar",
+    "precio": 450,
+    "imagen": "unicorn.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 3,
+  "fields": {
+    "nombre": "Robot Explorador",
+    "categoria": "avatar",
+    "precio": 300,
+    "imagen": "robot.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 4,
+  "fields": {
+    "nombre": "Tiburón Surfista",
+    "categoria": "avatar",
+    "precio": 350,
+    "imagen": "shark.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 5,
+  "fields": {
+    "nombre": "Hada del Bosque",
+    "categoria": "avatar",
+    "precio": 400,
+    "imagen": "fairy.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 6,
+  "fields": {
+    "nombre": "Superhéroe",
+    "categoria": "avatar",
+    "precio": 600,
+    "imagen": "hero.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 7,
+  "fields": {
+    "nombre": "Noche Estrellada",
+    "categoria": "fondo",
+    "precio": 200,
+    "imagen": "stars.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 8,
+  "fields": {
+    "nombre": "Espacio Exterior",
+    "categoria": "fondo",
+    "precio": 300,
+    "imagen": "space.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 9,
+  "fields": {
+    "nombre": "Reino de Dulces",
+    "categoria": "fondo",
+    "precio": 250,
+    "imagen": "candy.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 10,
+  "fields": {
+    "nombre": "Fondo Marino",
+    "categoria": "fondo",
+    "precio": 280,
+    "imagen": "ocean.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 11,
+  "fields": {
+    "nombre": "Ciudad Futura",
+    "categoria": "fondo",
+    "precio": 350,
+    "imagen": "cyber.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 12,
+  "fields": {
+    "nombre": "Corona Real",
+    "categoria": "accesorio",
+    "precio": 800,
+    "imagen": "crown.png",
+    "emoji": "🎀"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 13,
+  "fields": {
+    "nombre": "Gafas de Sol",
+    "categoria": "accesorio",
+    "precio": 100,
+    "imagen": "glasses.png",
+    "emoji": "🎀"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 14,
+  "fields": {
+    "nombre": "Sombrero de Mago",
+    "categoria": "accesorio",
+    "precio": 400,
+    "imagen": "wizard.png",
+    "emoji": "🎀"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 15,
+  "fields": {
+    "nombre": "Alas de Mariposa",
+    "categoria": "accesorio",
+    "precio": 500,
+    "imagen": "wings.png",
+    "emoji": "🎀"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 16,
+  "fields": {
+    "nombre": "Mochila Cohete",
+    "categoria": "accesorio",
+    "precio": 700,
+    "imagen": "rocket.png",
+    "emoji": "🎀"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 17,
+  "fields": {
+    "nombre": "Dragón Dorado",
+    "categoria": "avatar",
+    "precio": 800,
+    "imagen": "/static/shop/avatars/dragon_gold.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 18,
+  "fields": {
+    "nombre": "Unicornio Rosa",
+    "categoria": "avatar",
+    "precio": 450,
+    "imagen": "/static/shop/avatars/unicorn_pink.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 19,
+  "fields": {
+    "nombre": "Robot Ninja",
+    "categoria": "avatar",
+    "precio": 600,
+    "imagen": "/static/shop/avatars/robot_ninja.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 20,
+  "fields": {
+    "nombre": "Tiburón Rey",
+    "categoria": "avatar",
+    "precio": 700,
+    "imagen": "/static/shop/avatars/shark_king.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 21,
+  "fields": {
+    "nombre": "Hada de Luz",
+    "categoria": "avatar",
+    "precio": 500,
+    "imagen": "/static/shop/avatars/fairy_light.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 22,
+  "fields": {
+    "nombre": "Astronauta",
+    "categoria": "avatar",
+    "precio": 900,
+    "imagen": "/static/shop/avatars/astronaut.png",
+    "emoji": "🎭"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 23,
+  "fields": {
+    "nombre": "Ciudad Galáctica",
+    "categoria": "fondo",
+    "precio": 400,
+    "imagen": "/static/shop/fondos/galaxy_city.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 24,
+  "fields": {
+    "nombre": "Selva Encantada",
+    "categoria": "fondo",
+    "precio": 300,
+    "imagen": "/static/shop/fondos/magic_jungle.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 25,
+  "fields": {
+    "nombre": "Castillo de Nubes",
+    "categoria": "fondo",
+    "precio": 350,
+    "imagen": "/static/shop/fondos/cloud_castle.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 26,
+  "fields": {
+    "nombre": "Fondo de Cristales",
+    "categoria": "fondo",
+    "precio": 250,
+    "imagen": "/static/shop/fondos/crystals.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 27,
+  "fields": {
+    "nombre": "Desierto de Oro",
+    "categoria": "fondo",
+    "precio": 450,
+    "imagen": "/static/shop/fondos/gold_desert.png",
+    "emoji": "🌅"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 28,
+  "fields": {
+    "nombre": "Escudo Diamante",
+    "categoria": "accesorio",
+    "precio": 1200,
+    "imagen": "/static/shop/accesorios/shield_diamond.png",
+    "emoji": "🎀"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 29,
+  "fields": {
+    "nombre": "Capa de Hielo",
+    "categoria": "accesorio",
+    "precio": 500,
+    "imagen": "/static/shop/accesorios/cape_ice.png",
+    "emoji": "🎀"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 30,
+  "fields": {
+    "nombre": "Espada de Juguete",
+    "categoria": "accesorio",
+    "precio": 300,
+    "imagen": "/static/shop/accesorios/sword_toy.png",
+    "emoji": "🎀"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 31,
+  "fields": {
+    "nombre": "Varita Mágica",
+    "categoria": "accesorio",
+    "precio": 400,
+    "imagen": "/static/shop/accesorios/wand.png",
+    "emoji": "🎀"
+  }
+},
+{
+  "model": "usuarios.objetotienda",
+  "pk": 32,
+  "fields": {
+    "nombre": "Auriculares Pro",
+    "categoria": "accesorio",
+    "precio": 600,
+    "imagen": "/static/shop/accesorios/headphones.png",
+    "emoji": "🎀"
+  }
+}
+]
