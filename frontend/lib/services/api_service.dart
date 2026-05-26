@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/game_data.dart';
 import '../data/datos_locales.dart';
+import 'local_auth_service.dart';
 
 class ApiService {
   // Se pone en true la primera vez que falla la conexión al backend.
@@ -60,28 +61,62 @@ class ApiService {
     required String email,
     required String password,
   }) async {
-    final r = await http.post(
-      Uri.parse('$baseUrl/register/'),
-      headers: _headers(),
-      body: json.encode({
-        'nombre': nombre, 'edad': edad, 'avatar': avatar,
-        'email': email, 'password': password,
-      }),
+    if (!_modoOffline) {
+      try {
+        final r = await http.post(
+          Uri.parse('$baseUrl/register/'),
+          headers: _headers(),
+          body: json.encode({
+            'nombre': nombre, 'edad': edad, 'avatar': avatar,
+            'email': email, 'password': password,
+          }),
+        ).timeout(const Duration(seconds: 5));
+        final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+        if (r.statusCode == 200 || r.statusCode == 201) return body;
+        // Server-side validation error (e.g. duplicate email) — re-throw, don't go offline
+        throw Exception(body['error'] ?? 'Error al registrar');
+      } on Exception catch (e) {
+        if (e.toString().contains('Error al registrar') ||
+            e.toString().contains('correo') ||
+            e.toString().contains('email')) { rethrow; }
+        _modoOffline = true;
+      }
+    }
+    // Offline path
+    final user = await LocalAuthService.saveUser(
+      nombre: nombre, edad: edad, avatar: avatar,
+      email: email, password: password,
     );
-    final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
-    if (r.statusCode == 200 || r.statusCode == 201) return body;
-    throw Exception(body['error'] ?? 'Error al registrar');
+    return LocalAuthService.buildSession(user);
   }
 
   Future<Map<String, dynamic>> loginEmail(String email, String password) async {
-    final r = await http.post(
-      Uri.parse('$baseUrl/login-email/'),
-      headers: _headers(),
-      body: json.encode({'email': email, 'password': password}),
-    );
-    final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
-    if (r.statusCode == 200) return body;
-    throw Exception(body['error'] ?? 'Correo o contraseña incorrectos');
+    if (!_modoOffline) {
+      try {
+        final r = await http.post(
+          Uri.parse('$baseUrl/login-email/'),
+          headers: _headers(),
+          body: json.encode({'email': email, 'password': password}),
+        ).timeout(const Duration(seconds: 5));
+        final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+        if (r.statusCode == 200) return body;
+        // Wrong credentials — re-throw, don't fall through to offline
+        throw Exception(body['error'] ?? 'Correo o contraseña incorrectos');
+      } on Exception catch (e) {
+        if (e.toString().contains('Correo') || e.toString().contains('contraseña') ||
+            e.toString().contains('password') || e.toString().contains('incorrectos')) { rethrow; }
+        _modoOffline = true;
+      }
+    }
+    // Offline path
+    final user = await LocalAuthService.findUser(email);
+    if (user == null) {
+      throw Exception('No se encontró una cuenta con ese correo (sin conexión)');
+    }
+    if (!LocalAuthService.verifyPassword(password, user['password_hash'] as String)) {
+      throw Exception('Contraseña incorrecta');
+    }
+    return LocalAuthService.buildSession(user);
   }
 
   Future<Map<String, dynamic>> login(String nombre, int edad, String avatar) async {
@@ -97,13 +132,43 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> verifyToken(String token) async {
+    if (LocalAuthService.isOfflineToken(token)) {
+      final userId = LocalAuthService.userIdFromToken(token);
+      if (userId == null) throw Exception('Token offline inválido');
+      final user = await LocalAuthService.findUserById(userId);
+      if (user == null) throw Exception('Usuario offline no encontrado');
+      _modoOffline = true;
+      return LocalAuthService.buildSession(user);
+    }
     final r = await http.post(
       Uri.parse('$baseUrl/verify-token/'),
       headers: _headers(),
       body: json.encode({'token': token}),
-    );
-    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
+    ).timeout(const Duration(seconds: 5));
+    if (r.statusCode == 200) {
+      final data = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+      // Sync any queued progress from offline sessions
+      _syncPending(token: token).ignore();
+      return data;
+    }
     throw Exception('Token inválido o expirado');
+  }
+
+  Future<void> _syncPending({String? token}) async {
+    final pending = await LocalAuthService.getPendingProgress();
+    if (pending.isEmpty) return;
+    try {
+      for (final entry in pending) {
+        await http.post(
+          Uri.parse('$baseUrl/guardar/'),
+          headers: _headers(token: token),
+          body: json.encode(entry),
+        ).timeout(const Duration(seconds: 5));
+      }
+      await LocalAuthService.clearPendingProgress();
+    } catch (_) {
+      // Keep pending entries for next sync attempt
+    }
   }
 
   // ── Estudiantes ───────────────────────────────────────────────────────────
@@ -119,14 +184,25 @@ class ApiService {
 
   Future<Map<String, dynamic>> actualizarPerfil(
       int id, String nombre, String avatar, {String? token}) async {
-    final r = await http.post(
-      Uri.parse('$baseUrl/estudiante/$id/actualizar/'),
-      headers: _headers(token: token),
-      body: json.encode({'nombre': nombre, 'avatar': avatar}),
-    );
-    final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
-    if (r.statusCode == 200) return body;
-    throw Exception(body['error'] ?? 'Error al actualizar perfil');
+    if (_modoOffline) {
+      return {'nombre': nombre, 'avatar': avatar,
+              'avatar_url': 'assets/avatars/$avatar.png', 'offline': true};
+    }
+    try {
+      final r = await http.post(
+        Uri.parse('$baseUrl/estudiante/$id/actualizar/'),
+        headers: _headers(token: token),
+        body: json.encode({'nombre': nombre, 'avatar': avatar}),
+      ).timeout(const Duration(seconds: 5));
+      final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+      if (r.statusCode == 200) return body;
+      throw Exception(body['error'] ?? 'Error al actualizar perfil');
+    } catch (e) {
+      if (e is Exception && e.toString().contains('Error al actualizar')) rethrow;
+      _modoOffline = true;
+      return {'nombre': nombre, 'avatar': avatar,
+              'avatar_url': 'assets/avatars/$avatar.png', 'offline': true};
+    }
   }
 
   Future<void> cambiarPassword(
@@ -232,6 +308,7 @@ class ApiService {
     String? token,
   }) async {
     if (_modoOffline) {
+      await LocalAuthService.updatePoints(estudianteId, puntos);
       return {'puntos_totales': puntos, 'offline': true};
     }
     try {
@@ -250,6 +327,9 @@ class ApiService {
     } catch (e) {
       if (e is Exception && e.toString().contains('Error al guardar')) rethrow;
       _modoOffline = true;
+      await LocalAuthService.updatePoints(estudianteId, puntos);
+      await LocalAuthService.queueProgress(
+        estudianteId: estudianteId, libroId: libroId, puntos: puntos, total: total);
       return {'puntos_totales': puntos, 'offline': true};
     }
   }

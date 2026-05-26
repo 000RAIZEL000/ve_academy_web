@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
 
 class BookCoverWidget extends StatelessWidget {
   final String portadaUrl;
