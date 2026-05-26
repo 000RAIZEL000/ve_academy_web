@@ -18,6 +18,15 @@ class BookCoverWidget extends StatelessWidget {
     if (portadaUrl.isEmpty) {
       return _GeneratedCover(titulo: titulo, index: index);
     }
+    if (portadaUrl.startsWith('assets/')) {
+      return Image.asset(
+        portadaUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (ctx, err, st) => _GeneratedCover(titulo: titulo, index: index),
+      );
+    }
     return Image.network(
       portadaUrl,
       fit: BoxFit.cover,
