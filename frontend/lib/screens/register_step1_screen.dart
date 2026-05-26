@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_logo.dart';
-import '../services/api_service.dart';
 
 const _avatars = [
   {'key': 'conejo', 'emoji': '🐰', 'name': 'Conejo'},
@@ -206,8 +205,8 @@ class _RegisterStep1ScreenState extends State<RegisterStep1Screen>
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       ClipOval(
-                                        child: Image.network(
-                                          ApiService.resolveStaticUrl('/static/img/avatars/${av['key']}.png'),
+                                        child: Image.asset(
+                                          'assets/avatars/${av['key']}.png',
                                           width: 50, height: 50,
                                           fit: BoxFit.cover,
                                           errorBuilder: (context, error, stackTrace) =>

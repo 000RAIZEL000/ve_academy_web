@@ -220,10 +220,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
           child: Center(
             child: ClipOval(
-              child: Image.network(
-                ApiService.resolveStaticUrl(
-                  widget.session['avatar_url'] as String? ?? '/static/img/avatars/$_avatar.png',
-                ),
+              child: Image.asset(
+                'assets/avatars/$_avatar.png',
                 width: 80, height: 80,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) =>
@@ -321,8 +319,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: Center(
                   child: ClipOval(
-                    child: Image.network(
-                      ApiService.resolveStaticUrl('/static/img/avatars/${av['key']}.png'),
+                    child: Image.asset(
+                      'assets/avatars/${av['key']}.png',
                       width: 52, height: 52,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>

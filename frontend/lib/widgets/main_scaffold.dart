@@ -98,7 +98,23 @@ class _MainScaffoldState extends State<MainScaffold> {
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
+            Container(
+              width: 46, height: 46,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.25),
+                border: Border.all(color: Colors.white.withOpacity(0.6), width: 2),
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/avatars/${_session['avatar'] as String? ?? 'panda'}.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.person_rounded, color: Colors.white, size: 26),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             ...List.generate(_navItems.length, (i) {
               final sel = _currentIndex == i;
               return Padding(
@@ -202,7 +218,29 @@ class _MainScaffoldState extends State<MainScaffold> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_navItems[i].icon,
+                        if (i == 5)
+                          Container(
+                            width: i == _currentIndex ? 28 : 24,
+                            height: i == _currentIndex ? 28 : 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: sel ? AppColors.rosaOscuro : Colors.white,
+                                width: 2,
+                              ),
+                            ),
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/avatars/${_session['avatar'] as String? ?? 'panda'}.png',
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Icon(Icons.person_rounded,
+                                    color: sel ? AppColors.rosaOscuro : Colors.white,
+                                    size: 16),
+                              ),
+                            ),
+                          )
+                        else
+                          Icon(_navItems[i].icon,
                             color: sel ? AppColors.rosaOscuro : Colors.white,
                             size: i == _currentIndex ? 26 : 22),
                         const SizedBox(height: 2),

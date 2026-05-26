@@ -270,8 +270,8 @@ class _StudentTile extends StatelessWidget {
               ),
               child: Center(
                 child: ClipOval(
-                  child: Image.network(
-                    ApiService.resolveStaticUrl(student['avatar_url'] as String?),
+                  child: Image.asset(
+                    'assets/avatars/${student['avatar'] as String? ?? 'panda'}.png',
                     width: 44, height: 44,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Text(

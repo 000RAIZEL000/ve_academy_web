@@ -129,8 +129,8 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
                       ),
                       child: Row(children: [
                         ClipOval(
-                          child: Image.network(
-                            ApiService.resolveStaticUrl('/static/img/avatars/${widget.step1Data['avatar']}.png'),
+                          child: Image.asset(
+                            'assets/avatars/${widget.step1Data['avatar']}.png',
                             width: 50, height: 50,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
