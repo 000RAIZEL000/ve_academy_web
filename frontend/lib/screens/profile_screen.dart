@@ -85,7 +85,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           id, _nombreCtrl.text.trim(), _avatarSeleccionado, token: token);
       final nuevoSession = Map<String, dynamic>.from(widget.session)
         ..['nombre'] = data['nombre']
-        ..['avatar'] = data['avatar'];
+        ..['avatar'] = data['avatar']
+        ..['avatar_url'] = data['avatar_url'] ?? '/static/img/avatars/${data['avatar']}.png';
       await SessionService.saveSession({...nuevoSession, 'token': token ?? ''});
       widget.onSessionUpdated(nuevoSession);
       setState(() => _editando = false);
@@ -220,7 +221,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Center(
             child: ClipOval(
               child: Image.network(
-                ApiService.resolveStaticUrl(widget.session['avatar_url'] as String?),
+                ApiService.resolveStaticUrl(
+                  widget.session['avatar_url'] as String? ?? '/static/img/avatars/$_avatar.png',
+                ),
                 width: 80, height: 80,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) =>
@@ -316,7 +319,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(14),
                   border: sel ? Border.all(color: AppColors.rosaOscuro, width: 2) : null,
                 ),
-                child: Center(child: Text(av['emoji'] as String, style: const TextStyle(fontSize: 36))),
+                child: Center(
+                  child: ClipOval(
+                    child: Image.network(
+                      ApiService.resolveStaticUrl('/static/img/avatars/${av['key']}.png'),
+                      width: 52, height: 52,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Text(av['emoji'] as String, style: const TextStyle(fontSize: 36)),
+                    ),
+                  ),
+                ),
               ),
             );
           },
