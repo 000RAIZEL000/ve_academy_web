@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
+import '../data/datos_locales.dart';
 
 class ShopScreen extends StatefulWidget {
   final Map<String, dynamic> session;
@@ -30,7 +31,11 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
     _puntos = (widget.session['puntos'] as num?)?.toInt() ?? 0;
     _tabCtrl = TabController(length: 3, vsync: this);
     _tabCtrl.addListener(() => setState(() => _tab = _tabCtrl.index));
-    _cargarTienda();
+    // Mostrar tienda local de inmediato
+    _items = List.from(DatosLocales.getTienda());
+    _loading = false;
+    // Intentar sincronizar con el backend en segundo plano
+    WidgetsBinding.instance.addPostFrameCallback((_) => _cargarTienda());
   }
 
   @override
@@ -44,23 +49,26 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
       final token = widget.session['token'] as String?;
       final id = (widget.session['id'] as num).toInt();
       final api = ApiService();
-      final results = await Future.wait([
-        api.getObjetosTienda(token: token),
-        api.getEstudiante(id, token: token),
-      ]);
-      final items = results[0] as List<dynamic>;
-      final est = results[1] as Map<String, dynamic>;
-      final compras = (est['compras'] as List<dynamic>? ?? [])
-          .map((c) => (c['objeto']['id'] as num).toInt())
-          .toSet();
-      setState(() {
-        _items = items;
-        _comprados = compras;
-        _puntos = (est['puntos'] as num?)?.toInt() ?? _puntos;
-        _loading = false;
-      });
+      // Cargar ítems (tiene fallback offline en ApiService)
+      final items = await api.getObjetosTienda(token: token);
+      if (!mounted) return;
+      setState(() => _items = items);
+      // Cargar compras del estudiante — puede fallar sin backend
+      try {
+        final est = await api.getEstudiante(id, token: token);
+        if (!mounted) return;
+        final compras = (est['compras'] as List<dynamic>? ?? [])
+            .map((c) => (c['objeto']['id'] as num).toInt())
+            .toSet();
+        setState(() {
+          _comprados = compras;
+          _puntos = (est['puntos'] as num?)?.toInt() ?? _puntos;
+        });
+      } catch (_) {
+        // Sin backend: compras vacías, puntos desde sesión local
+      }
     } catch (_) {
-      setState(() => _loading = false);
+      // Los ítems locales ya están visibles, no hay nada que hacer
     }
   }
 

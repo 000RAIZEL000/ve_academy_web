@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
+import '../data/datos_locales.dart';
 import '../widgets/book_cover.dart';
 import 'activities_screen.dart';
 
@@ -31,7 +32,18 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarDetalle();
+    // Cargar datos locales de inmediato para no mostrar spinner
+    final slug = widget.libro['slug'] as String;
+    final local = DatosLocales.getLibroDetalle(slug);
+    if (local != null) {
+      _detalle = local;
+      _paginas = _dividirEnPaginas(local['texto'] as String? ?? '');
+      _loading = false;
+      // Actualizar desde red en segundo plano (sin spinner)
+      WidgetsBinding.instance.addPostFrameCallback((_) => _cargarDetalle());
+    } else {
+      _cargarDetalle();
+    }
   }
 
   Future<void> _cargarDetalle() async {
@@ -39,13 +51,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       final slug = widget.libro['slug'] as String;
       final token = widget.session['token'] as String?;
       final data = await ApiService().getLibroDetalle(slug, token: token);
+      if (!mounted) return;
       setState(() {
         _detalle = data;
         _paginas = _dividirEnPaginas(data['texto'] as String? ?? '');
         _loading = false;
       });
     } catch (_) {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

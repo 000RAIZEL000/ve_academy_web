@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
+import '../data/datos_locales.dart';
 import 'games/memory_screen.dart';
 import 'games/find_image_screen.dart';
 import 'games/order_sentence_screen.dart';
@@ -71,23 +72,27 @@ class _GamesMenuScreenState extends State<GamesMenuScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarLibros();
+    // Mostrar libros locales de inmediato
+    final libros = DatosLocales.getLibros();
+    _libros = libros;
+    if (libros.isNotEmpty) _libroSeleccionadoSlug = libros[0]['slug'] as String;
+    _loading = false;
+    // Actualizar desde red en segundo plano
+    WidgetsBinding.instance.addPostFrameCallback((_) => _actualizarDesdeRed());
   }
 
-  Future<void> _cargarLibros() async {
+  Future<void> _actualizarDesdeRed() async {
     try {
       final token = widget.session['token'] as String?;
       final libros = await ApiService().getLibros(token: token);
+      if (!mounted) return;
       setState(() {
         _libros = libros;
-        if (libros.isNotEmpty) {
+        if (_libroSeleccionadoSlug == null && libros.isNotEmpty) {
           _libroSeleccionadoSlug = libros[0]['slug'] as String;
         }
-        _loading = false;
       });
-    } catch (_) {
-      setState(() => _loading = false);
-    }
+    } catch (_) {}
   }
 
   Future<void> _abrirJuego(String juegoKey) async {

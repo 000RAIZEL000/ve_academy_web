@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
+import '../data/datos_locales.dart';
 import '../widgets/book_cover.dart';
 import 'book_detail_screen.dart';
 
@@ -25,7 +26,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarLibros();
+    // Mostrar datos locales de inmediato — sin esperar al backend
+    _libros = DatosLocales.getLibros();
+    _filtrados = List.from(_libros);
+    _loading = false;
+    // Intentar actualizar desde la red en segundo plano
+    WidgetsBinding.instance.addPostFrameCallback((_) => _actualizarDesdeRed());
   }
 
   @override
@@ -34,19 +40,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
     super.dispose();
   }
 
-  Future<void> _cargarLibros() async {
-    setState(() => _loading = true);
+  Future<void> _actualizarDesdeRed() async {
     try {
       final token = widget.session['token'] as String?;
       final libros = await ApiService().getLibros(token: token);
+      if (!mounted) return;
       setState(() {
         _libros = libros;
         _aplicarFiltros();
-        _loading = false;
       });
-    } catch (_) {
-      setState(() => _loading = false);
-    }
+    } catch (_) {}
+  }
+
+  Future<void> _cargarLibros() async {
+    // Pull-to-refresh: intenta red; si falla, datos locales ya están visibles
+    await _actualizarDesdeRed();
   }
 
   void _aplicarFiltros() {

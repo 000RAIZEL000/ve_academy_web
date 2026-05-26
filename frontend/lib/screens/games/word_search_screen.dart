@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 import '../../services/api_service.dart';
+import '../../data/datos_locales.dart';
 import '../../models/game_data.dart';
 
 class WordSearchScreen extends StatefulWidget {
@@ -27,13 +28,23 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarYGenerar();
+    final local = DatosLocales.getJuegos(widget.slug);
+    if (local != null) {
+      final words = local.palabras.map((p) => p.word).take(4).toList();
+      _wordsToFind = words;
+      _generateGrid(words);
+      _loading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _cargarYGenerar());
+    } else {
+      _cargarYGenerar();
+    }
   }
 
   Future<void> _cargarYGenerar() async {
     try {
       final token = widget.session['token'] as String?;
       final data = await ApiService().getJuegos(widget.slug, token: token);
+      if (!mounted || !_loading) return;
       final words = data.palabras.map((p) => p.word).take(4).toList();
       setState(() {
         _wordsToFind = words;
@@ -41,7 +52,7 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
         _loading = false;
       });
     } catch (_) {
-      setState(() => _loading = false);
+      if (mounted && _loading) setState(() => _loading = false);
     }
   }
 

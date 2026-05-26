@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 import '../../services/api_service.dart';
 import '../../models/game_data.dart';
+import '../../data/datos_locales.dart';
 
 class CompleteWordScreen extends StatefulWidget {
   final String slug;
@@ -28,13 +29,23 @@ class _CompleteWordScreenState extends State<CompleteWordScreen> {
   @override
   void initState() {
     super.initState();
-    _cargar();
+    final local = DatosLocales.getJuegos(widget.slug);
+    if (local != null) {
+      _gameData = local;
+      _palabras = List<GameWord>.from(local.palabras)..shuffle(Random());
+      _generarOpciones();
+      _loading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _cargar());
+    } else {
+      _cargar();
+    }
   }
 
   Future<void> _cargar() async {
     try {
       final token = widget.session['token'] as String?;
       final data = await ApiService().getJuegos(widget.slug, token: token);
+      if (!mounted || !_loading) return;
       setState(() {
         _gameData = data;
         _palabras = List<GameWord>.from(data.palabras)..shuffle(Random());
@@ -42,7 +53,7 @@ class _CompleteWordScreenState extends State<CompleteWordScreen> {
         _loading = false;
       });
     } catch (_) {
-      setState(() => _loading = false);
+      if (mounted && _loading) setState(() => _loading = false);
     }
   }
 

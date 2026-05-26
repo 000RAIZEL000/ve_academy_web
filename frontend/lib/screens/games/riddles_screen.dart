@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 import '../../services/api_service.dart';
 import '../../models/game_data.dart';
+import '../../data/datos_locales.dart';
 
 class RiddlesScreen extends StatefulWidget {
   final String slug;
@@ -27,20 +28,29 @@ class _RiddlesScreenState extends State<RiddlesScreen> {
   @override
   void initState() {
     super.initState();
-    _cargar();
+    final local = DatosLocales.getJuegos(widget.slug);
+    if (local != null) {
+      _gameData = local;
+      _riddles = List<Riddle>.from(local.adivinanzas)..shuffle(Random());
+      _loading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _cargar());
+    } else {
+      _cargar();
+    }
   }
 
   Future<void> _cargar() async {
     try {
       final token = widget.session['token'] as String?;
       final data = await ApiService().getJuegos(widget.slug, token: token);
+      if (!mounted || !_loading) return;
       setState(() {
         _gameData = data;
         _riddles = List<Riddle>.from(data.adivinanzas)..shuffle(Random());
         _loading = false;
       });
     } catch (_) {
-      setState(() => _loading = false);
+      if (mounted && _loading) setState(() => _loading = false);
     }
   }
 
