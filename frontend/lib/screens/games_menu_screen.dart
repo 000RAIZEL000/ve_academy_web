@@ -134,8 +134,13 @@ class _GamesMenuScreenState extends State<GamesMenuScreen> {
       final data = await ApiService().verifyToken(token);
       await ProgressService.syncFromServer(data);
       if (mounted) {
+        final freshSaved = await SessionService.getSession();
+        final localPuntos = (freshSaved?['puntos'] as num?)?.toInt() ?? 0;
+        final serverPuntos = (data['puntos'] as num?)?.toInt() ?? 0;
+        final mejorPuntos = localPuntos > serverPuntos ? localPuntos : serverPuntos;
+        if (mejorPuntos > serverPuntos) await SessionService.setPuntos(mejorPuntos);
         final network = Map<String, dynamic>.from(widget.session)
-          ..['puntos'] = data['puntos'];
+          ..['puntos'] = mejorPuntos;
         if (widget.onSessionUpdated != null) widget.onSessionUpdated!(network);
       }
     } catch (_) {}

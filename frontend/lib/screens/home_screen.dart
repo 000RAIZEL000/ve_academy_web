@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
+import '../services/session_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> session;
@@ -48,8 +49,14 @@ class _HomeScreenState extends State<HomeScreen>
       final token = widget.session['token'] as String?;
       if (token == null) return;
       final data = await ApiService().verifyToken(token);
+      final saved = await SessionService.getSession();
+      final localPuntos = (saved?['puntos'] as num?)?.toInt() ?? 0;
+      final serverPuntos = (data['puntos'] as num?)?.toInt() ?? 0;
+      final mejorPuntos = localPuntos > serverPuntos ? localPuntos : serverPuntos;
+      if (mejorPuntos > serverPuntos) await SessionService.setPuntos(mejorPuntos);
+      final updatedData = Map<String, dynamic>.from(data)..['puntos'] = mejorPuntos;
       if (widget.onSessionUpdated != null) {
-        widget.onSessionUpdated!(data);
+        widget.onSessionUpdated!(updatedData);
       }
     } catch (_) {}
   }

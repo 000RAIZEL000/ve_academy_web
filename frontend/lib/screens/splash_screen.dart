@@ -66,9 +66,13 @@ class _SplashScreenState extends State<SplashScreen>
         try {
           final api = ApiService();
           final data = await api.verifyToken(session['token'] as String);
-          await SessionService.saveSession(data);
+          final localPuntos = (session['puntos'] as num?)?.toInt() ?? 0;
+          final serverPuntos = (data['puntos'] as num?)?.toInt() ?? 0;
+          final mejorPuntos = localPuntos > serverPuntos ? localPuntos : serverPuntos;
+          final safeData = Map<String, dynamic>.from(data)..['puntos'] = mejorPuntos;
+          await SessionService.saveSession(safeData);
           if (!mounted) return;
-          Navigator.pushReplacementNamed(context, '/home', arguments: data);
+          Navigator.pushReplacementNamed(context, '/home', arguments: safeData);
           return;
         } catch (_) {
           await SessionService.clearSession();
