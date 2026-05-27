@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
+import '../services/progress_service.dart';
 
 class ProgressScreen extends StatefulWidget {
   final Map<String, dynamic> session;
@@ -16,6 +17,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
   List<dynamic> _logros = [];
   List<dynamic> _historial = [];
   bool _loading = true;
+  int _lecturasLocal = 0;
+  int _juegosLocal = 0;
+  List<Map<String, dynamic>> _historialLocal = [];
 
   int get _puntos => (widget.session['puntos'] as num?)?.toInt() ?? 0;
   int get _racha => (widget.session['racha_actual'] as num?)?.toInt() ?? 0;
@@ -28,28 +32,41 @@ class _ProgressScreenState extends State<ProgressScreen> {
     _cargarDatos();
   }
 
-  Future<void> _cargarDatos() async {
-    final id = (widget.session['id'] as num).toInt();
-    final token = widget.session['token'] as String?;
-    final api = ApiService();
-    try {
-      final results = await Future.wait([
-        api.getProgreso(id, token: token),
-        api.getLogros(token: token),
-        api.getHistorial(id, token: token),
-      ]);
-      setState(() {
-        _progreso = results[0];
-        _logros = results[1];
-        _historial = results[2];
-        _loading = false;
-      });
-    } catch (_) {
-      setState(() => _loading = false);
-    }
+  @override
+  void didUpdateWidget(covariant ProgressScreen old) {
+    super.didUpdateWidget(old);
+    if (old.session['puntos'] != widget.session['puntos']) _cargarDatos();
   }
 
-  int get _lecturasCompletadas => _progreso.where((p) => p['completado'] == true).length;
+  Future<void> _cargarDatos() async {
+    // Load local progress first (immediate, offline-safe)
+    _lecturasLocal = await ProgressService.getLibrosLeidosCount();
+    _juegosLocal = await ProgressService.getJuegosCompletados();
+    _historialLocal = await ProgressService.getHistorial();
+    if (mounted && _loading) setState(() => _loading = false);
+
+    // Then try to enrich from server
+    final id = (widget.session['id'] as num).toInt();
+    final token = widget.session['token'] as String?;
+    try {
+      final results = await Future.wait([
+        ApiService().getProgreso(id, token: token),
+        ApiService().getLogros(token: token),
+        ApiService().getHistorial(id, token: token),
+      ]);
+      if (mounted) {
+        setState(() {
+          _progreso = results[0];
+          _logros = results[1];
+          _historial = results[2];
+        });
+      }
+    } catch (_) {}
+  }
+
+  int get _lecturasCompletadas => _progreso.isNotEmpty
+      ? _progreso.where((p) => p['completado'] == true).length
+      : _lecturasLocal;
 
   @override
   Widget build(BuildContext context) {
@@ -145,12 +162,18 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildEstadisticas() {
-    return Row(children: [
-      Expanded(child: _statCard('📚', '$_lecturasCompletadas', 'Lecturas\ncompletadas', AppColors.celeste.withOpacity(0.3))),
-      const SizedBox(width: 12),
-      Expanded(child: _statCard('⭐', '$_puntos', 'Puntos\nacumulados', AppColors.amarillo.withOpacity(0.3))),
-      const SizedBox(width: 12),
-      Expanded(child: _statCard('🔥', '$_racha', 'Días\nseguidos', AppColors.rosa.withOpacity(0.3))),
+    return Column(children: [
+      Row(children: [
+        Expanded(child: _statCard('📚', '$_lecturasCompletadas', 'Lecturas\ncompletadas', AppColors.celeste.withOpacity(0.3))),
+        const SizedBox(width: 12),
+        Expanded(child: _statCard('🎮', '$_juegosLocal', 'Juegos\ncompletados', AppColors.lila.withOpacity(0.3))),
+      ]),
+      const SizedBox(height: 12),
+      Row(children: [
+        Expanded(child: _statCard('⭐', '$_puntos', 'Puntos\nacumulados', AppColors.amarillo.withOpacity(0.3))),
+        const SizedBox(width: 12),
+        Expanded(child: _statCard('🔥', '$_racha', 'Días\nseguidos', AppColors.rosa.withOpacity(0.3))),
+      ]),
     ]);
   }
 
@@ -217,12 +240,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildHistorial() {
-    if (_historial.isEmpty) return const SizedBox();
+    final items = _historial.isNotEmpty ? _historial : _historialLocal;
+    if (items.isEmpty) return const SizedBox();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('Historial de actividades',
           style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
       const SizedBox(height: 12),
-      ..._historial.take(8).map((h) => _HistorialItem(item: h)),
+      ...items.take(8).map((h) => _HistorialItem(item: h as Map<String, dynamic>)),
     ]);
   }
 }

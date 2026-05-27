@@ -126,6 +126,8 @@ class LocalAuthService {
 
   // ── Token helpers ──────────────────────────────────────────────────────────
 
+  static Future<List<Map<String, dynamic>>> getAllUsers() => _loadUsers();
+
   static bool isOfflineToken(String token) => token.startsWith('offline_');
 
   static int? userIdFromToken(String token) {

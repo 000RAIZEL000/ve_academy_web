@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
+import '../services/progress_service.dart';
 
 class ActivitiesScreen extends StatefulWidget {
   final Map<String, dynamic> libroDetalle;
@@ -108,6 +109,10 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
           ((widget.session['puntos'] as num?)?.toInt() ?? 0) + _puntosGanados;
       await SessionService.updatePuntos(totalPuntos);
 
+      final slug = widget.libroDetalle['slug'] as String? ?? '';
+      final titulo = widget.libroDetalle['titulo'] as String? ?? '';
+      await ProgressService.completarLibro(slug: slug, titulo: titulo, puntosGanados: _puntosGanados);
+
       if (widget.onSessionUpdated != null) {
         final upd = Map<String, dynamic>.from(widget.session)..['puntos'] = totalPuntos;
         widget.onSessionUpdated!(upd);
@@ -122,6 +127,11 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
       final existingPuntos = (widget.session['puntos'] as num?)?.toInt() ?? 0;
       final newTotal = existingPuntos + _puntosGanados;
       await SessionService.updatePuntos(newTotal);
+
+      final slug = widget.libroDetalle['slug'] as String? ?? '';
+      final titulo = widget.libroDetalle['titulo'] as String? ?? '';
+      await ProgressService.completarLibro(slug: slug, titulo: titulo, puntosGanados: _puntosGanados);
+
       if (widget.onSessionUpdated != null) {
         final upd = Map<String, dynamic>.from(widget.session)..['puntos'] = newTotal;
         widget.onSessionUpdated!(upd);

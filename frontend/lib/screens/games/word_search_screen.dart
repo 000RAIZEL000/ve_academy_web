@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 import '../../services/api_service.dart';
+import '../../services/progress_service.dart';
 import '../../data/datos_locales.dart';
 
 class WordSearchScreen extends StatefulWidget {
@@ -148,6 +149,7 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
   }
 
   Future<void> _notificarExito() async {
+    await ProgressService.completarJuego(slug: widget.slug, tipo: 'sopa');
     try {
       final token = widget.session['token'] as String?;
       final estudianteId = (widget.session['id'] as num?)?.toInt();

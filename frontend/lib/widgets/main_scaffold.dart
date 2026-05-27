@@ -10,6 +10,7 @@ import '../screens/games_menu_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/ranking_screen.dart';
 import '../services/session_service.dart';
+import '../services/progress_service.dart';
 
 class MainScaffold extends StatefulWidget {
   final Map<String, dynamic> session;
@@ -163,6 +164,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                       TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('No, volver')),
                       ElevatedButton(
                         onPressed: () async {
+                          await ProgressService.clearAll();
                           await SessionService.clearSession();
                           if (!mounted) return;
                           Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);

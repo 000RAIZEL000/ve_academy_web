@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/game_data.dart';
 import '../data/datos_locales.dart';
 import 'local_auth_service.dart';
+import 'session_service.dart';
 
 class ApiService {
   // Se pone en true la primera vez que falla la conexión al backend.
@@ -321,9 +322,7 @@ class ApiService {
   }) async {
     if (_modoOffline) {
       final puntosReales = puntos * 10;
-      await LocalAuthService.updatePoints(estudianteId, puntosReales);
-      final user = await LocalAuthService.findUserById(estudianteId);
-      final totalPuntos = (user?['puntos'] as num?)?.toInt() ?? puntosReales;
+      final totalPuntos = await _acumularPuntos(estudianteId, puntosReales);
       return {'puntos_ganados': puntosReales, 'puntos_totales': totalPuntos, 'offline': true};
     }
     try {
@@ -343,11 +342,9 @@ class ApiService {
       if (e is Exception && e.toString().contains('Error al guardar')) rethrow;
       _modoOffline = true;
       final puntosReales = puntos * 10;
-      await LocalAuthService.updatePoints(estudianteId, puntosReales);
+      final totalPuntos = await _acumularPuntos(estudianteId, puntosReales);
       await LocalAuthService.queueProgress(
         estudianteId: estudianteId, libroId: libroId, puntos: puntos, total: total);
-      final user = await LocalAuthService.findUserById(estudianteId);
-      final totalPuntos = (user?['puntos'] as num?)?.toInt() ?? puntosReales;
       return {'puntos_ganados': puntosReales, 'puntos_totales': totalPuntos, 'offline': true};
     }
   }
@@ -399,9 +396,29 @@ class ApiService {
     }
   }
 
+  // ── Private helpers ───────────────────────────────────────────────────────
+
+  /// Adds [amount] to the student's local point store, handling both local
+  /// offline users (stored in LocalAuthService) and server users (stored in
+  /// SessionService). Returns the new cumulative total.
+  static Future<int> _acumularPuntos(int estudianteId, int amount) async {
+    await LocalAuthService.updatePoints(estudianteId, amount);
+    final localUser = await LocalAuthService.findUserById(estudianteId);
+    if (localUser != null) {
+      final total = (localUser['puntos'] as num?)?.toInt() ?? amount;
+      await SessionService.updatePuntos(total);
+      return total;
+    }
+    // Server user offline: accumulate on top of persisted session points
+    final saved = await SessionService.getSession();
+    final total = ((saved?['puntos'] as num?)?.toInt() ?? 0) + amount;
+    await SessionService.updatePuntos(total);
+    return total;
+  }
+
   Future<void> completarActividad(String slug, String tipo, {String? token, int? estudianteId}) async {
     if (_modoOffline) {
-      if (estudianteId != null) await LocalAuthService.updatePoints(estudianteId, 5);
+      if (estudianteId != null) await _acumularPuntos(estudianteId, 5);
       return;
     }
     try {
@@ -414,7 +431,7 @@ class ApiService {
     } catch (e) {
       if (e is Exception && e.toString().contains('Error al completar')) rethrow;
       _modoOffline = true;
-      if (estudianteId != null) await LocalAuthService.updatePoints(estudianteId, 5);
+      if (estudianteId != null) await _acumularPuntos(estudianteId, 5);
     }
   }
 }

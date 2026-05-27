@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
+import '../services/session_service.dart';
+import '../services/progress_service.dart';
 import '../data/datos_locales.dart';
 import 'games/memory_screen.dart';
 import 'games/find_image_screen.dart';
@@ -85,7 +87,7 @@ class _GamesMenuScreenState extends State<GamesMenuScreen> {
     try {
       final token = widget.session['token'] as String?;
       final libros = await ApiService().getLibros(token: token);
-      if (!mounted) return;
+      if (!mounted || libros.isEmpty) return;
       setState(() {
         _libros = libros;
         if (_libroSeleccionadoSlug == null && libros.isNotEmpty) {
@@ -116,14 +118,26 @@ class _GamesMenuScreenState extends State<GamesMenuScreen> {
   }
 
   Future<void> _refreshSession() async {
+    // Immediate offline-safe update: read current points from SessionService
+    // (completarActividad already updated it regardless of network state)
+    final saved = await SessionService.getSession();
+    if (saved != null && mounted) {
+      final immediate = Map<String, dynamic>.from(widget.session)
+        ..['puntos'] = saved['puntos'];
+      if (widget.onSessionUpdated != null) widget.onSessionUpdated!(immediate);
+    }
+
+    // Background: try to get fresh server data and sync progress
     try {
       final token = widget.session['token'] as String?;
       if (token == null) return;
       final data = await ApiService().verifyToken(token);
-      final newSession = Map<String, dynamic>.from(widget.session);
-      newSession['puntos'] = data['puntos'];
-      // Solo informar al padre, no mutar localmente para que didUpdateWidget detecte el cambio
-      if (widget.onSessionUpdated != null) widget.onSessionUpdated!(newSession);
+      await ProgressService.syncFromServer(data);
+      if (mounted) {
+        final network = Map<String, dynamic>.from(widget.session)
+          ..['puntos'] = data['puntos'];
+        if (widget.onSessionUpdated != null) widget.onSessionUpdated!(network);
+      }
     } catch (_) {}
   }
 

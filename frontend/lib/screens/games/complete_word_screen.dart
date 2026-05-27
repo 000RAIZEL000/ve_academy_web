@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 import '../../services/api_service.dart';
+import '../../services/progress_service.dart';
 import '../../models/game_data.dart';
 import '../../data/datos_locales.dart';
 
@@ -94,6 +95,7 @@ class _CompleteWordScreenState extends State<CompleteWordScreen> {
   }
 
   Future<void> _notificarExito() async {
+    await ProgressService.completarJuego(slug: widget.slug, tipo: 'completar');
     try {
       final token = widget.session['token'] as String?;
       final estudianteId = (widget.session['id'] as num?)?.toInt();

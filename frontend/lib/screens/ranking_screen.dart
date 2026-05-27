@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
+import '../services/local_auth_service.dart';
 import 'settings_screen.dart';
 
 class RankingScreen extends StatefulWidget {
@@ -47,6 +48,21 @@ class _RankingScreenState extends State<RankingScreen>
   }
 
   Future<void> _load() async {
+    // Show local ranking immediately (offline-safe)
+    final localRanking = await _buildLocalRanking();
+    if (mounted) {
+      setState(() {
+        if (localRanking.isNotEmpty) {
+          _rankingGlobal = localRanking;
+          _rankingEdad = localRanking
+              .where((s) => (s['edad'] as num?)?.toInt() == _miEdad)
+              .toList();
+        }
+        _loading = false;
+      });
+    }
+
+    // Enrich from server
     try {
       final token = await SessionService.getToken();
       final results = await Future.wait([
@@ -54,15 +70,53 @@ class _RankingScreenState extends State<RankingScreen>
         ApiService().getRanking(edad: _miEdad, token: token),
       ]);
       if (mounted) {
+        final global = results[0] as List;
+        final edad = results[1] as List;
         setState(() {
-          _rankingGlobal = results[0];
-          _rankingEdad = results[1];
-          _loading = false;
+          if (global.isNotEmpty) _rankingGlobal = global;
+          if (edad.isNotEmpty) _rankingEdad = edad;
         });
       }
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
+    } catch (_) {}
+  }
+
+  Future<List<Map<String, dynamic>>> _buildLocalRanking() async {
+    final allUsers = await LocalAuthService.getAllUsers();
+    final myId = _miId;
+    final session = widget.session;
+
+    final list = allUsers.map<Map<String, dynamic>>((u) => {
+      'id': u['id'],
+      'nombre': u['nombre'] as String? ?? '',
+      'puntos': (u['puntos'] as num?)?.toInt() ?? 0,
+      'racha_actual': (u['racha_actual'] as num?)?.toInt() ?? 0,
+      'avatar': u['avatar'] as String? ?? 'panda',
+      'avatar_emoji': u['avatar_emoji'] as String? ?? '🐼',
+      'edad': (u['edad'] as num?)?.toInt() ?? 5,
+    }).toList();
+
+    final idx = list.indexWhere((u) => u['id'] == myId);
+    if (idx >= 0) {
+      // Update current user's points from live session
+      list[idx] = Map<String, dynamic>.from(list[idx])
+        ..['puntos'] = (session['puntos'] as num?)?.toInt() ?? list[idx]['puntos'];
+    } else {
+      // Server user not in local storage — add from session
+      list.add({
+        'id': myId,
+        'nombre': session['nombre'] as String? ?? '',
+        'puntos': (session['puntos'] as num?)?.toInt() ?? 0,
+        'racha_actual': (session['racha_actual'] as num?)?.toInt() ?? 0,
+        'avatar': session['avatar'] as String? ?? 'panda',
+        'avatar_emoji': session['avatar_emoji'] as String? ?? '🐼',
+        'edad': (session['edad'] as num?)?.toInt() ?? 5,
+      });
     }
+
+    list.sort((a, b) =>
+        ((b['puntos'] as num?)?.toInt() ?? 0)
+            .compareTo((a['puntos'] as num?)?.toInt() ?? 0));
+    return list;
   }
 
   @override

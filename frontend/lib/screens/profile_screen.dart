@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
+import '../services/progress_service.dart';
 import 'settings_screen.dart';
 
 const _avatarOpciones = [
@@ -30,6 +31,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _estudiante;
   bool _loading = true;
   bool _editando = false;
+  int _librosLeidosLocal = 0;
+  int _juegosLocal = 0;
   final _nombreCtrl = TextEditingController();
   String _avatarSeleccionado = 'panda';
 
@@ -56,17 +59,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant ProfileScreen old) {
+    super.didUpdateWidget(old);
+    if (old.session['puntos'] != widget.session['puntos']) _refreshLocalStats();
+  }
+
+  Future<void> _refreshLocalStats() async {
+    final libros = await ProgressService.getLibrosLeidosCount();
+    final juegos = await ProgressService.getJuegosCompletados();
+    if (mounted) setState(() { _librosLeidosLocal = libros; _juegosLocal = juegos; });
+  }
+
   Future<void> _cargarEstudiante() async {
+    _librosLeidosLocal = await ProgressService.getLibrosLeidosCount();
+    _juegosLocal = await ProgressService.getJuegosCompletados();
     try {
       final id = (widget.session['id'] as num).toInt();
       final token = widget.session['token'] as String?;
       final data = await ApiService().getEstudiante(id, token: token);
-      setState(() {
-        _estudiante = data;
-        _loading = false;
-      });
+      if (mounted) setState(() { _estudiante = data; _loading = false; });
     } catch (_) {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -256,8 +270,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildStats() {
     final insignias = (_estudiante?['insignias'] as List<dynamic>? ?? []).length;
     final compras = (_estudiante?['compras'] as List<dynamic>? ?? []).length;
-    final librosLeidos = (_estudiante?['libros_leidos'] as num?)?.toInt() ?? 0;
-    final juegosCompletados = (_estudiante?['juegos_completados'] as num?)?.toInt() ?? 0;
+    final librosLeidos = (_estudiante?['libros_leidos'] as num?)?.toInt() ?? _librosLeidosLocal;
+    final juegosCompletados = (_estudiante?['juegos_completados'] as num?)?.toInt() ?? _juegosLocal;
     return Column(children: [
       Row(children: [
         Expanded(child: _statCard('🏆', '$insignias', 'Logros', AppColors.amarillo.withOpacity(0.25))),
