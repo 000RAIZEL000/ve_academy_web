@@ -81,7 +81,8 @@ class _RiddlesScreenState extends State<RiddlesScreen> {
   Future<void> _notificarExito() async {
     try {
       final token = widget.session['token'] as String?;
-      await ApiService().completarActividad(widget.slug, 'juego_adivinanzas', token: token);
+      final estudianteId = (widget.session['id'] as num?)?.toInt();
+      await ApiService().completarActividad(widget.slug, 'juego_adivinanzas', token: token, estudianteId: estudianteId);
     } catch (_) {}
   }
 

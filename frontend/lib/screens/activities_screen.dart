@@ -103,8 +103,9 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
         token: token,
       );
 
-      _puntosGanados = (result['puntos_ganados'] as num?)?.toInt() ?? 0;
-      final totalPuntos = (result['puntos_totales'] as num?)?.toInt() ?? 0;
+      _puntosGanados = (result['puntos_ganados'] as num?)?.toInt() ?? _correctas * 10;
+      final totalPuntos = (result['puntos_totales'] as num?)?.toInt() ??
+          ((widget.session['puntos'] as num?)?.toInt() ?? 0) + _puntosGanados;
       await SessionService.updatePuntos(totalPuntos);
 
       if (widget.onSessionUpdated != null) {
@@ -113,11 +114,18 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
       }
 
       final pct = total > 0 ? _correctas / total : 0.0;
-      _estrellas = pct >= 0.9 ? 3 : (pct >= 0.6 ? 2 : 1);
+      _estrellas = _correctas == 0 ? 0 : (pct >= 0.9 ? 3 : (pct >= 0.5 ? 2 : 1));
     } catch (_) {
       final pct = _preguntas.isNotEmpty ? _correctas / _preguntas.length : 0.0;
-      _estrellas = pct >= 0.9 ? 3 : (pct >= 0.6 ? 2 : 1);
+      _estrellas = _correctas == 0 ? 0 : (pct >= 0.9 ? 3 : (pct >= 0.5 ? 2 : 1));
       _puntosGanados = _correctas * 10;
+      final existingPuntos = (widget.session['puntos'] as num?)?.toInt() ?? 0;
+      final newTotal = existingPuntos + _puntosGanados;
+      await SessionService.updatePuntos(newTotal);
+      if (widget.onSessionUpdated != null) {
+        final upd = Map<String, dynamic>.from(widget.session)..['puntos'] = newTotal;
+        widget.onSessionUpdated!(upd);
+      }
     }
     setState(() {
       _finalizado = true;
@@ -328,7 +336,8 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
     final pct = total > 0 ? _correctas / total : 0.0;
     final stars = List.generate(3, (i) => i < _estrellas);
     final mensajes = [
-      '¡Sigue practicando! 💪',
+      '¡Sigue intentándolo! Puedes mejorar 💪',
+      '¡Buen intento! ¡Sigue practicando! 💪',
       '¡Muy bien! ¡Casi perfecto! 🌟',
       '¡INCREÍBLE! ¡Eres un campeón! 🏆',
     ];
@@ -348,7 +357,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
               ),
               child: Center(
                 child: Text(
-                  _estrellas == 3 ? '🏆' : (_estrellas == 2 ? '🌟' : '📖'),
+                  _estrellas == 3 ? '🏆' : (_estrellas == 2 ? '🌟' : (_estrellas == 1 ? '📖' : '💪')),
                   style: const TextStyle(fontSize: 56),
                 ),
               ),
@@ -358,7 +367,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
                 style: GoogleFonts.baloo2(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.texto),
                 textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            Text(mensajes[_estrellas - 1],
+            Text(mensajes[_estrellas],
                 style: GoogleFonts.nunito(fontSize: 17, color: AppColors.textoSuave),
                 textAlign: TextAlign.center),
             const SizedBox(height: 24),

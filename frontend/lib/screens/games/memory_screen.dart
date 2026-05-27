@@ -113,7 +113,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
   Future<void> _notificarExito() async {
     try {
       final token = widget.session['token'] as String?;
-      await ApiService().completarActividad(widget.slug, 'juego_memoria', token: token);
+      final estudianteId = (widget.session['id'] as num?)?.toInt();
+      await ApiService().completarActividad(widget.slug, 'juego_memoria', token: token, estudianteId: estudianteId);
     } catch (_) {}
   }
 

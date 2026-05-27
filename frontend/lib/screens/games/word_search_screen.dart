@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 import '../../services/api_service.dart';
 import '../../data/datos_locales.dart';
-import '../../models/game_data.dart';
 
 class WordSearchScreen extends StatefulWidget {
   final String slug;
@@ -151,7 +150,8 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
   Future<void> _notificarExito() async {
     try {
       final token = widget.session['token'] as String?;
-      await ApiService().completarActividad(widget.slug, 'juego_sopa', token: token);
+      final estudianteId = (widget.session['id'] as num?)?.toInt();
+      await ApiService().completarActividad(widget.slug, 'juego_sopa', token: token, estudianteId: estudianteId);
     } catch (_) {}
   }
 

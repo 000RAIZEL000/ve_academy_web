@@ -47,17 +47,21 @@ class _RankingScreenState extends State<RankingScreen>
   }
 
   Future<void> _load() async {
-    final token = await SessionService.getToken();
-    final results = await Future.wait([
-      ApiService().getRanking(token: token),
-      ApiService().getRanking(edad: _miEdad, token: token),
-    ]);
-    if (mounted) {
-      setState(() {
-        _rankingGlobal = results[0];
-        _rankingEdad = results[1];
-        _loading = false;
-      });
+    try {
+      final token = await SessionService.getToken();
+      final results = await Future.wait([
+        ApiService().getRanking(token: token),
+        ApiService().getRanking(edad: _miEdad, token: token),
+      ]);
+      if (mounted) {
+        setState(() {
+          _rankingGlobal = results[0];
+          _rankingEdad = results[1];
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
     }
   }
 

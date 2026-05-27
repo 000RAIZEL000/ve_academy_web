@@ -236,7 +236,7 @@ class _GamesMenuScreenState extends State<GamesMenuScreen> {
                                         color: AppColors.rosa.withOpacity(0.3),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      child: Text('+10 pts',
+                                      child: Text('+5 pts',
                                           style: GoogleFonts.nunito(
                                               fontSize: 10, fontWeight: FontWeight.w700,
                                               color: AppColors.rosaOscuro)),

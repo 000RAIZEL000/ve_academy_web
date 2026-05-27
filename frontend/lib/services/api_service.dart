@@ -217,19 +217,31 @@ class ApiService {
   }
 
   Future<List<dynamic>> getRanking({int? edad, String? token}) async {
-    var url = '$baseUrl/ranking/';
-    if (edad != null) url += '?edad=$edad';
-    final r = await http.get(Uri.parse(url), headers: _headers(token: token));
-    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
-    return [];
+    if (_modoOffline) return [];
+    try {
+      var url = '$baseUrl/ranking/';
+      if (edad != null) url += '?edad=$edad';
+      final r = await http.get(Uri.parse(url), headers: _headers(token: token))
+          .timeout(const Duration(seconds: 5));
+      if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
+      return [];
+    } catch (_) {
+      return [];
+    }
   }
 
   // ── Logros y Tienda ───────────────────────────────────────────────────────
 
   Future<List<dynamic>> getLogros({String? token}) async {
-    final r = await http.get(Uri.parse('$baseUrl/logros/'), headers: _headers(token: token));
-    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
-    return [];
+    if (_modoOffline) return [];
+    try {
+      final r = await http.get(Uri.parse('$baseUrl/logros/'), headers: _headers(token: token))
+          .timeout(const Duration(seconds: 5));
+      if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
+      return [];
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<List<dynamic>> getObjetosTienda({String? token}) async {
@@ -308,8 +320,11 @@ class ApiService {
     String? token,
   }) async {
     if (_modoOffline) {
-      await LocalAuthService.updatePoints(estudianteId, puntos);
-      return {'puntos_totales': puntos, 'offline': true};
+      final puntosReales = puntos * 10;
+      await LocalAuthService.updatePoints(estudianteId, puntosReales);
+      final user = await LocalAuthService.findUserById(estudianteId);
+      final totalPuntos = (user?['puntos'] as num?)?.toInt() ?? puntosReales;
+      return {'puntos_ganados': puntosReales, 'puntos_totales': totalPuntos, 'offline': true};
     }
     try {
       final r = await http.post(
@@ -327,20 +342,28 @@ class ApiService {
     } catch (e) {
       if (e is Exception && e.toString().contains('Error al guardar')) rethrow;
       _modoOffline = true;
-      await LocalAuthService.updatePoints(estudianteId, puntos);
+      final puntosReales = puntos * 10;
+      await LocalAuthService.updatePoints(estudianteId, puntosReales);
       await LocalAuthService.queueProgress(
         estudianteId: estudianteId, libroId: libroId, puntos: puntos, total: total);
-      return {'puntos_totales': puntos, 'offline': true};
+      final user = await LocalAuthService.findUserById(estudianteId);
+      final totalPuntos = (user?['puntos'] as num?)?.toInt() ?? puntosReales;
+      return {'puntos_ganados': puntosReales, 'puntos_totales': totalPuntos, 'offline': true};
     }
   }
 
   Future<List<dynamic>> getProgreso(int estudianteId, {String? token}) async {
-    final r = await http.get(
-      Uri.parse('$baseUrl/progreso/$estudianteId/'),
-      headers: _headers(token: token),
-    );
-    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
-    return [];
+    if (_modoOffline) return [];
+    try {
+      final r = await http.get(
+        Uri.parse('$baseUrl/progreso/$estudianteId/'),
+        headers: _headers(token: token),
+      ).timeout(const Duration(seconds: 5));
+      if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
+      return [];
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<BookGameData> getJuegos(String slug, {String? token}) async {
@@ -363,22 +386,35 @@ class ApiService {
   }
 
   Future<List<dynamic>> getHistorial(int estudianteId, {String? token}) async {
-    final r = await http.get(
-      Uri.parse('$baseUrl/historial/$estudianteId/'),
-      headers: _headers(token: token),
-    );
-    if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
-    return [];
+    if (_modoOffline) return [];
+    try {
+      final r = await http.get(
+        Uri.parse('$baseUrl/historial/$estudianteId/'),
+        headers: _headers(token: token),
+      ).timeout(const Duration(seconds: 5));
+      if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
+      return [];
+    } catch (_) {
+      return [];
+    }
   }
 
-  Future<void> completarActividad(String slug, String tipo, {String? token}) async {
-    final r = await http.post(
-      Uri.parse('$baseUrl/completar-actividad/'),
-      headers: _headers(token: token),
-      body: json.encode({'slug': slug, 'tipo': tipo}),
-    );
-    if (r.statusCode != 200) {
-      throw Exception('Error al completar actividad');
+  Future<void> completarActividad(String slug, String tipo, {String? token, int? estudianteId}) async {
+    if (_modoOffline) {
+      if (estudianteId != null) await LocalAuthService.updatePoints(estudianteId, 5);
+      return;
+    }
+    try {
+      final r = await http.post(
+        Uri.parse('$baseUrl/completar-actividad/'),
+        headers: _headers(token: token),
+        body: json.encode({'slug': slug, 'tipo': tipo}),
+      ).timeout(const Duration(seconds: 5));
+      if (r.statusCode != 200) throw Exception('Error al completar actividad');
+    } catch (e) {
+      if (e is Exception && e.toString().contains('Error al completar')) rethrow;
+      _modoOffline = true;
+      if (estudianteId != null) await LocalAuthService.updatePoints(estudianteId, 5);
     }
   }
 }

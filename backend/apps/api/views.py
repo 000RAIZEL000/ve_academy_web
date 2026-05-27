@@ -308,10 +308,12 @@ def guardar_resultado(request):
 
 
 def _calcular_estrellas(puntos, total):
+    if puntos == 0:
+        return 0
     pct = puntos / total if total > 0 else 0
     if pct >= 0.9:
         return 3
-    if pct >= 0.6:
+    if pct >= 0.5:
         return 2
     return 1
 
@@ -415,10 +417,7 @@ def completar_actividad(request):
 
     estudiante = get_object_or_404(Estudiante, pk=estudiante_id)
     
-    # Diferentes puntos según dificultad
-    puntos_ganados = 10
-    if tipo in ['juego_sopa', 'juego_ordenar', 'juego_adivinanzas']:
-        puntos_ganados = 15
+    puntos_ganados = 5
         
     estudiante.puntos += puntos_ganados
     estudiante.save()
