@@ -37,12 +37,14 @@ class EstudianteDetailSerializer(serializers.ModelSerializer):
     insignias = InsigniaSerializer(many=True, read_only=True)
     compras = CompraSerializer(many=True, read_only=True)
     avatar_emoji = serializers.ReadOnlyField()
+    libros_leidos = serializers.ReadOnlyField()
 
     class Meta:
         model = Estudiante
         fields = [
             'id', 'nombre', 'edad', 'avatar', 'avatar_url', 'avatar_emoji',
             'puntos', 'racha_actual', 'max_racha',
+            'libros_leidos', 'juegos_completados',
             'insignias', 'compras',
         ]
 

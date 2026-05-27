@@ -51,7 +51,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
       final api = ApiService();
       // Cargar ítems (tiene fallback offline en ApiService)
       final items = await api.getObjetosTienda(token: token);
-      if (!mounted) return;
+      if (!mounted || items.isEmpty) return;
       setState(() => _items = items);
       // Cargar compras del estudiante — puede fallar sin backend
       try {

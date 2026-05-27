@@ -34,6 +34,9 @@ class Estudiante(models.Model):
     email = models.EmailField(unique=True, null=True, blank=True)
     password_hash = models.CharField(max_length=128, null=True, blank=True)
 
+    # Contadores de actividad
+    juegos_completados = models.IntegerField(default=0)
+
     # Sistema de Rachas
     racha_actual = models.IntegerField(default=0)
     max_racha = models.IntegerField(default=0)
@@ -68,6 +71,13 @@ class Estudiante(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.edad} años) - {self.puntos} pts"
+
+    @property
+    def libros_leidos(self):
+        from apps.actividades.models import SesionActividad
+        return SesionActividad.objects.filter(
+            estudiante=self, completado=True
+        ).values('libro').distinct().count()
 
     @property
     def avatar_url(self):

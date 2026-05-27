@@ -177,7 +177,7 @@ class ApiService {
     final r = await http.get(
       Uri.parse('$baseUrl/estudiante/$id/'),
       headers: _headers(token: token),
-    );
+    ).timeout(const Duration(seconds: 5));
     if (r.statusCode == 200) return json.decode(utf8.decode(r.bodyBytes));
     throw Exception('Error al cargar estudiante');
   }

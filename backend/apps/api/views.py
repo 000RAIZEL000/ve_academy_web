@@ -418,8 +418,9 @@ def completar_actividad(request):
     estudiante = get_object_or_404(Estudiante, pk=estudiante_id)
     
     puntos_ganados = 5
-        
+
     estudiante.puntos += puntos_ganados
+    estudiante.juegos_completados += 1
     estudiante.save()
     estudiante.actualizar_racha()
     

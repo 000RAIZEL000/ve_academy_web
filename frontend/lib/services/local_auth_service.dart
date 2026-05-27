@@ -71,11 +71,12 @@ class LocalAuthService {
     return user;
   }
 
-  static Future<void> updatePoints(int userId, int puntos) async {
+  static Future<void> updatePoints(int userId, int puntosAAgregar) async {
     final users = await _loadUsers();
     final idx = users.indexWhere((u) => u['id'] == userId);
     if (idx != -1) {
-      users[idx]['puntos'] = puntos;
+      final current = (users[idx]['puntos'] as num?)?.toInt() ?? 0;
+      users[idx]['puntos'] = current + puntosAAgregar;
       await _saveUsers(users);
     }
   }

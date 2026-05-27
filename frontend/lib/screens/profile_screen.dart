@@ -256,12 +256,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildStats() {
     final insignias = (_estudiante?['insignias'] as List<dynamic>? ?? []).length;
     final compras = (_estudiante?['compras'] as List<dynamic>? ?? []).length;
-    return Row(children: [
-      Expanded(child: _statCard('🏆', '$insignias', 'Logros', AppColors.amarillo.withOpacity(0.25))),
-      const SizedBox(width: 12),
-      Expanded(child: _statCard('🛍️', '$compras', 'Compras', AppColors.lila.withOpacity(0.25))),
-      const SizedBox(width: 12),
-      Expanded(child: _statCard('📖', '${(_puntos / 10).floor()}', 'Libros', AppColors.celeste.withOpacity(0.25))),
+    final librosLeidos = (_estudiante?['libros_leidos'] as num?)?.toInt() ?? 0;
+    final juegosCompletados = (_estudiante?['juegos_completados'] as num?)?.toInt() ?? 0;
+    return Column(children: [
+      Row(children: [
+        Expanded(child: _statCard('🏆', '$insignias', 'Logros', AppColors.amarillo.withOpacity(0.25))),
+        const SizedBox(width: 12),
+        Expanded(child: _statCard('🛍️', '$compras', 'Compras', AppColors.lila.withOpacity(0.25))),
+      ]),
+      const SizedBox(height: 12),
+      Row(children: [
+        Expanded(child: _statCard('📖', '$librosLeidos', 'Libros leídos', AppColors.celeste.withOpacity(0.25))),
+        const SizedBox(width: 12),
+        Expanded(child: _statCard('🎮', '$juegosCompletados', 'Minijuegos', AppColors.rosa.withOpacity(0.25))),
+      ]),
     ]);
   }
 

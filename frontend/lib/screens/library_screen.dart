@@ -44,10 +44,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
     try {
       final token = widget.session['token'] as String?;
       final libros = await ApiService().getLibros(token: token);
-      if (!mounted) return;
+      if (!mounted || libros.isEmpty) return;
       setState(() {
         _libros = libros;
-        _aplicarFiltros();
+        _filtrados = libros.where((l) {
+          final titulo = (l['titulo'] as String? ?? '').toLowerCase();
+          final autor = (l['autor'] as String? ?? '').toLowerCase();
+          final busq = _busqueda.toLowerCase();
+          final matchBusq = busq.isEmpty || titulo.contains(busq) || autor.contains(busq);
+          final edadMin = (l['edad_min'] as num?)?.toInt() ?? 5;
+          final matchEdad = _edadFiltro == null || edadMin <= _edadFiltro!;
+          return matchBusq && matchEdad;
+        }).toList();
       });
     } catch (_) {}
   }
