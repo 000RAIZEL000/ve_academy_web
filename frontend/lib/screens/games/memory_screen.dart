@@ -25,6 +25,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   int _moves = 0;
   int _pares = 0;
   bool _completado = false;
+  Future<void>? _notificarFuture;
 
   @override
   void initState() {
@@ -88,7 +89,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
           _pares++;
           _completado = _pares == _cards.length ~/ 2;
         });
-        if (_completado) _notificarExito();
+        if (_completado) _notificarFuture = _notificarExito();
         _firstFlipped = null;
       } else {
         _blocking = true;
@@ -129,7 +130,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.texto),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            await (_notificarFuture ?? Future.value());
+            if (mounted) Navigator.pop(context);
+          },
         ),
         title: Text('Memoria 🧠', style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.texto)),
         centerTitle: true,
@@ -241,7 +245,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
         ),
         const SizedBox(height: 12),
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            await (_notificarFuture ?? Future.value());
+            if (mounted) Navigator.pop(context);
+          },
           child: Text('Volver a juegos', style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave)),
         ),
       ]),

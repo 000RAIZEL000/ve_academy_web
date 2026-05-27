@@ -25,6 +25,7 @@ class _RiddlesScreenState extends State<RiddlesScreen> {
   String? _seleccionada;
   bool _respondida = false;
   bool _completado = false;
+  Future<void>? _notificarFuture;
 
   @override
   void initState() {
@@ -75,7 +76,7 @@ class _RiddlesScreenState extends State<RiddlesScreen> {
       });
     } else {
       setState(() => _completado = true);
-      _notificarExito();
+      _notificarFuture = _notificarExito();
     }
   }
 
@@ -108,7 +109,10 @@ class _RiddlesScreenState extends State<RiddlesScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.texto),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            await (_notificarFuture ?? Future.value());
+            if (mounted) Navigator.pop(context);
+          },
         ),
         title: Text('Adivinanzas 🕵️', 
             style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.texto)),
@@ -272,7 +276,10 @@ class _RiddlesScreenState extends State<RiddlesScreen> {
           ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+              await (_notificarFuture ?? Future.value());
+              if (mounted) Navigator.pop(context);
+            },
             child: Text('Volver al menú', style: GoogleFonts.nunito(fontSize: 16, color: AppColors.textoSuave)),
           ),
         ],

@@ -26,6 +26,7 @@ class _FindImageScreenState extends State<FindImageScreen> {
   bool _respondida = false;
   bool _completado = false;
   List<int> _opciones = [];
+  Future<void>? _notificarFuture;
 
   @override
   void initState() {
@@ -83,7 +84,7 @@ class _FindImageScreenState extends State<FindImageScreen> {
       setState(() { _actual++; _generarOpciones(); });
     } else {
       setState(() => _completado = true);
-      _notificarExito();
+      _notificarFuture = _notificarExito();
     }
   }
 
@@ -115,7 +116,10 @@ class _FindImageScreenState extends State<FindImageScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.texto),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            await (_notificarFuture ?? Future.value());
+            if (mounted) Navigator.pop(context);
+          },
         ),
         title: Text('Palabra e Imagen 🖼️', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
         centerTitle: true,
@@ -281,7 +285,11 @@ class _FindImageScreenState extends State<FindImageScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
             )),
         const SizedBox(height: 12),
-        TextButton(onPressed: () => Navigator.pop(context),
+        TextButton(
+            onPressed: () async {
+              await (_notificarFuture ?? Future.value());
+              if (mounted) Navigator.pop(context);
+            },
             child: Text('Volver', style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave))),
       ]),
     ));

@@ -41,6 +41,14 @@ class SessionService {
     await p.setInt(_puntos, puntos);
   }
 
+  static Future<int> agregarPuntos(int cantidad) async {
+    final p = await SharedPreferences.getInstance();
+    final current = p.getInt(_puntos) ?? 0;
+    final newTotal = current + cantidad;
+    await p.setInt(_puntos, newTotal);
+    return newTotal;
+  }
+
   static Future<void> clearSession() async {
     final p = await SharedPreferences.getInstance();
     await p.remove(_token);

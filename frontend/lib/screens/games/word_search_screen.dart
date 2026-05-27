@@ -24,6 +24,7 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
   List<Offset> _selectedCells = [];
   bool _loading = true;
   bool _completado = false;
+  Future<void>? _notificarFuture;
 
   @override
   void initState() {
@@ -133,7 +134,7 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
           _selectedCells = [];
           if (_foundWords.length == _wordsToFind.length) {
             _completado = true;
-            _notificarExito();
+            _notificarFuture = _notificarExito();
           }
         });
         wordFound = true;
@@ -163,8 +164,11 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
       backgroundColor: AppColors.fondo,
       appBar: AppBar(
         backgroundColor: Colors.white, elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.texto), 
-            onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.texto),
+            onPressed: () async {
+              await (_notificarFuture ?? Future.value());
+              if (mounted) Navigator.pop(context);
+            }),
         title: Text('Sopa de Letras 🔍', 
             style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.texto)),
         centerTitle: true,
@@ -288,7 +292,10 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
       const SizedBox(height: 32),
       ElevatedButton(
         style: ElevatedButton.styleFrom(backgroundColor: AppColors.celeste, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
-        onPressed: () => Navigator.pop(context), 
+        onPressed: () async {
+          await (_notificarFuture ?? Future.value());
+          if (mounted) Navigator.pop(context);
+        },
         child: Text('Volver', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700)),
       ),
     ]));

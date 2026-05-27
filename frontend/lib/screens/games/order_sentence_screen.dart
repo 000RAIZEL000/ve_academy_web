@@ -27,6 +27,7 @@ class _OrderSentenceScreenState extends State<OrderSentenceScreen> {
   List<String> _respuesta = [];
   bool _verificado = false;
   bool _esCorrecto = false;
+  Future<void>? _notificarFuture;
 
   @override
   void initState() {
@@ -99,7 +100,7 @@ class _OrderSentenceScreenState extends State<OrderSentenceScreen> {
       setState(() { _actual++; _cargarOracion(); });
     } else {
       setState(() => _completado = true);
-      _notificarExito();
+      _notificarFuture = _notificarExito();
     }
   }
 
@@ -131,7 +132,10 @@ class _OrderSentenceScreenState extends State<OrderSentenceScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.texto),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            await (_notificarFuture ?? Future.value());
+            if (mounted) Navigator.pop(context);
+          },
         ),
         title: Text('Ordenar Historia 🔀', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
         centerTitle: true,
@@ -309,7 +313,11 @@ class _OrderSentenceScreenState extends State<OrderSentenceScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
           )),
       const SizedBox(height: 12),
-      TextButton(onPressed: () => Navigator.pop(context),
+      TextButton(
+          onPressed: () async {
+            await (_notificarFuture ?? Future.value());
+            if (mounted) Navigator.pop(context);
+          },
           child: Text('Volver', style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textoSuave))),
     ]),
   ));

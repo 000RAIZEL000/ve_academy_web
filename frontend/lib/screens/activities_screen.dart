@@ -124,12 +124,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
       final pct = _preguntas.isNotEmpty ? _correctas / _preguntas.length : 0.0;
       _estrellas = _correctas == 0 ? 0 : (pct >= 0.9 ? 3 : (pct >= 0.5 ? 2 : 1));
       _puntosGanados = _correctas * 10;
-      // Read current session from persistence to get up-to-date points (not stale widget.session)
-      final saved = await SessionService.getSession();
-      final existingPuntos = (saved?['puntos'] as num?)?.toInt() ??
-          (widget.session['puntos'] as num?)?.toInt() ?? 0;
-      final newTotal = existingPuntos + _puntosGanados;
-      await SessionService.updatePuntos(newTotal);
+      final newTotal = await SessionService.agregarPuntos(_puntosGanados);
 
       final slug = widget.libroDetalle['slug'] as String? ?? '';
       final titulo = widget.libroDetalle['titulo'] as String? ?? '';
