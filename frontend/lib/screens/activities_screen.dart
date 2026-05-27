@@ -105,9 +105,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
       );
 
       _puntosGanados = (result['puntos_ganados'] as num?)?.toInt() ?? _correctas * 10;
-      final totalPuntos = (result['puntos_totales'] as num?)?.toInt() ??
-          ((widget.session['puntos'] as num?)?.toInt() ?? 0) + _puntosGanados;
-      await SessionService.updatePuntos(totalPuntos);
+      final totalPuntos = await SessionService.agregarPuntos(_puntosGanados);
 
       final slug = widget.libroDetalle['slug'] as String? ?? '';
       final titulo = widget.libroDetalle['titulo'] as String? ?? '';

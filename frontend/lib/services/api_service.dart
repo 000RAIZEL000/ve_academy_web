@@ -406,7 +406,7 @@ class ApiService {
     final localUser = await LocalAuthService.findUserById(estudianteId);
     if (localUser != null) {
       final total = (localUser['puntos'] as num?)?.toInt() ?? amount;
-      await SessionService.updatePuntos(total);
+      await SessionService.setPuntos(total); // sincronizar total exacto desde LocalAuthService
       return total;
     }
     // Server user offline: atomic read-add-save via agregarPuntos
@@ -425,13 +425,9 @@ class ApiService {
         body: json.encode({'slug': slug, 'tipo': tipo}),
       ).timeout(const Duration(seconds: 5));
       if (r.statusCode == 200) {
-        final body = json.decode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
-        final serverTotal = (body['puntos_totales'] as num?)?.toInt();
-        if (serverTotal != null) {
-          await SessionService.updatePuntos(serverTotal);
-        } else if (estudianteId != null) {
-          await _acumularPuntos(estudianteId, 5);
-        }
+        // Sumar siempre localmente — el total del servidor puede estar
+        // desincronizado si el estudiante ganó puntos offline antes.
+        if (estudianteId != null) await _acumularPuntos(estudianteId, 5);
       } else if (estudianteId != null) {
         await _acumularPuntos(estudianteId, 5);
       }

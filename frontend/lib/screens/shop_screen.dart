@@ -111,7 +111,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
       final nuevosPuntos = (result['puntos_restantes'] as num).toInt();
       _puntos = nuevosPuntos;
       _comprados.add((item['id'] as num).toInt());
-      await SessionService.updatePuntos(nuevosPuntos);
+      await SessionService.setPuntos(nuevosPuntos); // balance exacto post-compra
       final updSession = Map<String, dynamic>.from(widget.session)..['puntos'] = nuevosPuntos;
       widget.onSessionUpdated(updSession);
       setState(() {});

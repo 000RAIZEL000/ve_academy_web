@@ -36,17 +36,25 @@ class SessionService {
     };
   }
 
-  static Future<void> updatePuntos(int puntos) async {
-    final p = await SharedPreferences.getInstance();
-    await p.setInt(_puntos, puntos);
-  }
-
+  /// Suma [cantidad] a los puntos actuales. Nunca reemplaza el total.
   static Future<int> agregarPuntos(int cantidad) async {
     final p = await SharedPreferences.getInstance();
     final current = p.getInt(_puntos) ?? 0;
     final newTotal = current + cantidad;
     await p.setInt(_puntos, newTotal);
     return newTotal;
+  }
+
+  /// Alias de [agregarPuntos] — SUMA, no reemplaza.
+  static Future<void> updatePuntos(int cantidad) async {
+    await agregarPuntos(cantidad);
+  }
+
+  /// Establece el total exacto. Solo usar cuando el servidor es autoritativo
+  /// (login, token verify, compra en tienda).
+  static Future<void> setPuntos(int total) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setInt(_puntos, total);
   }
 
   static Future<void> clearSession() async {
