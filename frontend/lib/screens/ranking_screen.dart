@@ -48,21 +48,26 @@ class _RankingScreenState extends State<RankingScreen>
   }
 
   Future<void> _load() async {
-    // Show local ranking immediately (offline-safe)
-    final localRanking = await _buildLocalRanking();
-    if (mounted) {
-      setState(() {
-        if (localRanking.isNotEmpty) {
-          _rankingGlobal = localRanking;
-          _rankingEdad = localRanking
-              .where((s) => (s['edad'] as num?)?.toInt() == _miEdad)
-              .toList();
-        }
-        _loading = false;
-      });
+    if (_rankingGlobal.isEmpty) {
+      // First load: show local ranking immediately while waiting for server
+      final localRanking = await _buildLocalRanking();
+      if (mounted) {
+        setState(() {
+          if (localRanking.isNotEmpty) {
+            _rankingGlobal = localRanking;
+            _rankingEdad = localRanking
+                .where((s) => (s['edad'] as num?)?.toInt() == _miEdad)
+                .toList();
+          }
+          _loading = false;
+        });
+      }
+    } else {
+      // Subsequent calls (points changed): update current user inline, no flicker
+      _updateCurrentUserInRanking();
     }
 
-    // Enrich from server
+    // Always try to get fresh server data
     try {
       final token = await SessionService.getToken();
       final results = await Future.wait([
@@ -75,9 +80,38 @@ class _RankingScreenState extends State<RankingScreen>
         setState(() {
           if (global.isNotEmpty) _rankingGlobal = global;
           if (edad.isNotEmpty) _rankingEdad = edad;
+          if (_loading) _loading = false;
         });
       }
-    } catch (_) {}
+    } catch (_) {
+      if (mounted && _loading) setState(() => _loading = false);
+    }
+  }
+
+  void _updateCurrentUserInRanking() {
+    final myId = _miId;
+    final myPuntos = (widget.session['puntos'] as num?)?.toInt() ?? 0;
+
+    List<dynamic> updateAndSort(List<dynamic> list) {
+      final updated = list.map((s) {
+        final id = (s['id'] as num?)?.toInt();
+        if (id == myId) {
+          return Map<String, dynamic>.from(s as Map)..['puntos'] = myPuntos;
+        }
+        return s;
+      }).toList();
+      updated.sort((a, b) =>
+          ((b['puntos'] as num?)?.toInt() ?? 0)
+              .compareTo((a['puntos'] as num?)?.toInt() ?? 0));
+      return updated;
+    }
+
+    if (mounted) {
+      setState(() {
+        _rankingGlobal = updateAndSort(_rankingGlobal);
+        _rankingEdad = updateAndSort(_rankingEdad);
+      });
+    }
   }
 
   Future<List<Map<String, dynamic>>> _buildLocalRanking() async {

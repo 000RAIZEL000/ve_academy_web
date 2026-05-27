@@ -39,6 +39,14 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   }
 
   @override
+  void didUpdateWidget(covariant ShopScreen old) {
+    super.didUpdateWidget(old);
+    if (old.session['puntos'] != widget.session['puntos']) {
+      setState(() => _puntos = (widget.session['puntos'] as num?)?.toInt() ?? _puntos);
+    }
+  }
+
+  @override
   void dispose() {
     _tabCtrl.dispose();
     super.dispose();

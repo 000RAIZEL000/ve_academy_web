@@ -43,7 +43,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
     _lecturasLocal = await ProgressService.getLibrosLeidosCount();
     _juegosLocal = await ProgressService.getJuegosCompletados();
     _historialLocal = await ProgressService.getHistorial();
-    if (mounted && _loading) setState(() => _loading = false);
+    // Always rebuild so local stats are reflected immediately (not just on first load)
+    if (mounted) setState(() => _loading = false);
 
     // Then try to enrich from server
     final id = (widget.session['id'] as num).toInt();
@@ -191,14 +192,36 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _buildLibrosProgreso() {
-    if (_progreso.isEmpty) return const SizedBox();
+    if (_progreso.isNotEmpty) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Lecturas', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
+        const SizedBox(height: 12),
+        ..._progreso.take(5).map((p) => _LibroProgresoItem(progreso: p)),
+        if (_progreso.length > 5)
+          Center(child: Text('+${_progreso.length - 5} más',
+              style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textoSuave))),
+      ]);
+    }
+    // Fallback: build list from local history when server is unavailable
+    final librosLeidos = <Map<String, dynamic>>[];
+    final seenSlugs = <String>{};
+    for (final h in _historialLocal) {
+      if (h['tipo'] != 'libro') continue;
+      final slug = h['libro_slug'] as String? ?? '';
+      if (slug.isNotEmpty && seenSlugs.add(slug)) {
+        librosLeidos.add({
+          'libro_titulo': h['libro_titulo'] as String? ?? slug,
+          'porcentaje': 100,
+          'completado': true,
+          'intentos': 1,
+        });
+      }
+    }
+    if (librosLeidos.isEmpty) return const SizedBox();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('Lecturas', style: GoogleFonts.baloo2(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.texto)),
       const SizedBox(height: 12),
-      ..._progreso.take(5).map((p) => _LibroProgresoItem(progreso: p)),
-      if (_progreso.length > 5)
-        Center(child: Text('+${_progreso.length - 5} más',
-            style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textoSuave))),
+      ...librosLeidos.take(5).map((p) => _LibroProgresoItem(progreso: p)),
     ]);
   }
 

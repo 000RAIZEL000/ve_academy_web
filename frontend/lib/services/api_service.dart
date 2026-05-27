@@ -427,9 +427,11 @@ class ApiService {
         headers: _headers(token: token),
         body: json.encode({'slug': slug, 'tipo': tipo}),
       ).timeout(const Duration(seconds: 5));
-      if (r.statusCode != 200) throw Exception('Error al completar actividad');
-    } catch (e) {
-      if (e is Exception && e.toString().contains('Error al completar')) rethrow;
+      if (r.statusCode != 200) {
+        // Server rejected — add points locally so the student is never penalised
+        if (estudianteId != null) await _acumularPuntos(estudianteId, 5);
+      }
+    } catch (_) {
       _modoOffline = true;
       if (estudianteId != null) await _acumularPuntos(estudianteId, 5);
     }
